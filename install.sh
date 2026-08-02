@@ -2,18 +2,13 @@
 # turiya-companion-kit installer
 # Copies (not symlinks) skills/core/* into ~/.claude/skills/.
 # Refuses to overwrite an existing skill directory of the same name.
-# Usage: ./install.sh [--advanced]
+# Usage: ./install.sh
 
 set -eu
 
 KIT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 SRC_DIR="$KIT_DIR/skills/core"
 DEST_DIR="$HOME/.claude/skills"
-
-if [ "${1:-}" = "--advanced" ]; then
-    echo "--advanced: coming soon (advanced kit not yet published)."
-    exit 0
-fi
 
 if [ ! -d "$SRC_DIR" ]; then
     echo "error: $SRC_DIR not found. Run from the cloned repo." >&2

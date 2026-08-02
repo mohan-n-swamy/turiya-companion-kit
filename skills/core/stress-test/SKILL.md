@@ -57,6 +57,8 @@ Optionally in parallel: search the web for `"[design name or pattern] production
 
 ### Q6 — Reliability gate (pass@k) — CONDITIONAL, non-deterministic objectives only
 
+Advanced — skip until you're building multi-step agents.
+
 Q1–Q5 stress a design by *reasoning* about failure. Necessary, but blind to one class: designs whose primary objective is **non-deterministic behavior** — an LLM prompt, a classifier, an agent flow, a skill, any step that depends on model output. Such a design can pass Q1–Q5 cleanly on paper and still fail 30% of runs in practice. Reasoning cannot measure reliability; only repeated runs can.
 
 **Fires when** the primary objective depends on model / LLM output, classification, agent behavior, or any stochastic step.
@@ -73,6 +75,8 @@ Q1–Q5 stress a design by *reasoning* about failure. Necessary, but blind to on
 **OOD-verifier caveat:** if the design's *verifier itself* is an agent / LLM-judge, it is unreliable when the verification target is **out-of-distribution** — novel paper, unfamiliar benchmark, a check the model hasn't seen patterns for. An OOD agent-evaluator silently passes weak work. So: when the check is novel, the deterministic floor is not optional — it is the only trustworthy layer; agent-review degrades to advisory. Run Q6's pass@k on the *verifier*, not just the generator, whenever the verifier is itself stochastic.
 
 ### Q7 — Unattended-loop gate (budget + entropy) — CONDITIONAL, unattended metric-descent runs only
+
+Advanced — skip until you're building multi-step agents.
 
 Q1–Q6 stress a design's *correctness and reliability*. Blind to one class: designs that **run unattended in a loop, descending toward a metric** — overnight builds, any "drop agent in feedback loop until target met." Such a design can pass Q1–Q6 and still burn 10 hours for a 2% gain, or memorize the eval instead of generalizing. The agent is an optimizer; every cheap path you don't fence, it sprints down.
 

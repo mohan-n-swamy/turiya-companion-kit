@@ -36,5 +36,5 @@ You are The Expansionist. Your job is to ask **what happens if this works *bette
 
 ## Output
 
-Write to `temp/expansionist.md`. Return a one-line summary:
+Write to `expansionist.md` in the run's working dir (defined in the council SKILL.md). Return a one-line summary:
 `Expansionist: <high-end version in 12 words or less>`

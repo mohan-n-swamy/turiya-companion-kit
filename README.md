@@ -21,9 +21,25 @@ cd turiya-companion-kit
 ./install.sh
 ```
 
-`install.sh` copies each skill into `~/.claude/skills/`. It refuses to overwrite a skill directory you already have — delete yours first if you want the kit's version. A `brew install mohan-n-swamy/tap/turiya-skills` formula is coming after the first tagged release.
+`install.sh` copies each skill into `~/.claude/skills/`. It refuses to overwrite a skill directory you already have — delete yours first if you want the kit's version. Interrupted install? Delete that skill's folder and re-run.
+
+Windows: run `install.sh` from Git Bash (ships with Git for Windows) or WSL. No shell? Manual install works everywhere: copy each folder inside `skills/core/` into `~/.claude/skills/` (Windows: `%USERPROFILE%\.claude\skills`).
 
 Restart Claude Code (or start a new session) and the skills are live: `/council`, `/stress-test`, `/morning`, and so on.
+
+## Making the always-on skills actually always-on
+
+`brutal-honesty`, `human-proofing`, and `antifragile-advisor` are written as always-on, but on a stock install a skill fires when the model matches your request to its description — which is most of the time, not all of the time. To make them genuinely always-on, add this line to your `~/.claude/CLAUDE.md`:
+
+> Apply the brutal-honesty and human-proofing skills to every interaction; use antifragile-advisor whenever I propose a plan or decision.
+
+## Your first session
+
+1. `cd` into the folder you want as your notes home.
+2. Run `/morning` — it will ask where your daily notes should live, then propose your Top 3.
+3. Tomorrow evening, run `/nightly` to close the day.
+4. This week, run `/council` on one real decision you're actually facing.
+5. Ignore the other ten skills until these three are habits.
 
 ## The Core Kit, skill by skill
 
@@ -50,6 +66,8 @@ The kit is a starting rig, not a finished one. Three expected moves:
 1. **Rewrite the voice.** `writing-style`'s Voice section is one author's stance in four lines. Replace it or the skill will make you sound like someone else.
 2. **Edit the rituals to your day.** `morning`/`nightly`/`triage-inbox` assume a plain daily-notes folder; point them at your actual structure, cut sections you won't use. A ritual you resent is a ritual you'll drop.
 3. **Delete what you don't run.** A skills directory full of unused skills is the tool-hoarding this kit's own `steal-ladder` warns about. Two skills used daily beat thirteen installed.
+
+You'll notice two formatting styles across the skills (plain markdown vs XML-tagged sections) — both work; skills are just markdown, pick either for your own.
 
 Skills are just markdown — open them, argue with them, commit your fork.
 

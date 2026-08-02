@@ -274,46 +274,7 @@ Check: name what this piece says that the last three didn't. If you can't, it's 
 
 ## Human-Proofing (Anti-AI Patterns)
 
-AI-polished writing has recognizable tells. Structure and clarity come from AI. Humanity comes from the author. These rules ensure the polish doesn't sterilize the person. (The full detection layer lives in the `human-proofing` skill — this is the summary that applies during drafting.)
-
-### Structural Tells to Break
-
-**No sandwich format.** Don't follow the same skeleton every time (hook → framework → numbered items → closing question). Vary the shape. Some pieces should open with a story and never reach a framework. Some should start with the conclusion. Some should end abruptly without a neat bow. If every piece reads like a template was filled in, readers notice.
-
-**No constant parallelism.** "It's not X, it's Y" is powerful once. Twice in a piece is a pattern. Three times is a machine. Limit to one per piece, maximum. Find other ways to create contrast — a story that shows the difference, a question that makes the reader feel it, a before/after example.
-
-**Vary closings.** Not every piece ends with "What's your experience?" or an engagement question. Some pieces earn a quiet ending — a final image, a single sentence that sits heavy, or just stopping when the point is made. Engagement questions are fine sometimes. But when every piece ends with one, it becomes formula.
-
-**Break the subtitle pattern.** Not every subtitle should be "Why [claim]" or "An Operator's Guide to [topic]." Mix it up. Use a phrase from the piece. Use a question. Use nothing.
-
-### Sentence-Level Tells to Catch
-
-**Em dashes must earn their place.** Every em dash should do something a period or comma cannot. If the em dash is decorative — just creating a pause that a period would handle — replace it. Limit to 2-3 per piece. More than that flags AI.
-
-**No symmetrical sentence pairs.** "AI accelerates tasks. Humans bring intuition." — this balanced, mirrored structure is an AI fingerprint. Real writers don't naturally produce matched pairs. If you see two sentences that mirror each other in structure and length, rewrite one of them.
-
-**No rhetorical questions as transitions.** "So why does this matter?" and "But what happens when...?" are filler. Cut them. Transition by starting the next thought directly. The reader doesn't need a question to follow you to the next paragraph.
-
-**Blogging clichés to kill on sight:** "Have you ever wondered," "Here's the thing," "Let me explain," "Without further ado," "It goes without saying," "Let's dive in," "Here's the kicker," "Ready to [verb] your [noun]?"
-
-### The Mess Test
-
-Before any piece is final, check: where is the real-world mess?
-
-- **Is there a moment where something didn't work?** Not a hypothetical failure — a real one, with a name or a date or a specific detail.
-- **Is there a "yeah, but in reality..." moment?** Where the clean framework meets the messy world and the writer admits the gap.
-- **Is there tonal variation?** Does the piece have a moment of frustration, doubt, humor, or surprise — not just steady instructional confidence?
-- **Is there at least one tangent, aside, or unexpected detail?** Something a reader wouldn't predict from the heading. Something only a person who lived this would include.
-
-If the answer is no to all four, the piece sounds like AI regardless of the words used. Coach the author to add these before polishing further.
-
-### Voice Switching
-
-AI tends to stay in one voice (all second person, or all third person) from start to finish. Human writers switch naturally.
-
-- Mix first-person stories ("I was sitting in the review...") with second-person application ("When you see this pattern...")
-- Occasionally shift to third person for distance ("The manager who does this...")
-- The switch itself signals a human mind at work
+While drafting, keep the `human-proofing` checks in mind: break structural tells (sandwich format, constant parallelism, formulaic closings and subtitles), catch sentence-level tells (em-dash overuse, symmetrical sentence pairs, rhetorical-question transitions, blogging clichés), run the Mess Test (real failures, tonal variation, tangents), and switch voice at least once. The full detection layer — and all counts and thresholds — live in the `human-proofing` skill; thresholds live there; don't duplicate numbers here.
 
 ---
 

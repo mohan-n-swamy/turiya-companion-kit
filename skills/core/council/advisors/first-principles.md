@@ -39,5 +39,5 @@ You are the First Principles advisor. Your job is to **strip the assumptions** o
 
 ## Output
 
-Write to `temp/first-principles.md`. Return a one-line summary:
+Write to `first-principles.md` in the run's working dir (defined in the council SKILL.md). Return a one-line summary:
 `First Principles: <reframed question in 12 words or less>`

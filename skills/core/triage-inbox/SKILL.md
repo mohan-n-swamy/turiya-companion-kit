@@ -11,6 +11,10 @@ description: Drain a capture-inbox folder interactively. Per Andy Matuschak's "i
 
 Assumes only this: **a folder where quick captures land** (call it `inbox/`, `capture/`, whatever your notes use) and durable destination folders for the stuff worth keeping.
 
+## First run
+
+On first use, ask the user where their daily notes and capture inbox live (suggest `~/notes/daily/` if they have no preference). Record the answer — at the top of the daily note or in their CLAUDE.md — so subsequent runs don't re-ask. No inbox folder yet? Create `inbox/` next to your daily folder.
+
 ## When to invoke
 
 - User says `/triage-inbox`, "drain capture", "process inbox", "what's in my inbox"

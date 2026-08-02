@@ -33,6 +33,8 @@ description: |
 
 ## How to run
 
+**Working-dir convention (used everywhere below):** every run gets its own directory, `.council-temp/<timestamp>/` under the cwd — referred to as "the run's working dir." Create it before Layer 1; all advisor and peer-review files live inside it.
+
 You will execute three layers — DO NOT collapse them:
 
 ### Layer 1 — Parallel advisor dispatch (context fork)
@@ -41,21 +43,21 @@ For each of the 5 advisors, dispatch a `general-purpose` Agent in **parallel** (
 
 1. The full text of the user's question.
 2. The advisor's prompt (read from `advisors/<lens>.md`).
-3. Instruction to write a verdict (≤200 words) to `temp/<advisor>.md` and return a one-line summary.
+3. Instruction to write a verdict (≤200 words) to `.council-temp/<timestamp>/<advisor>.md` and return a one-line summary.
 
 This isolates each advisor's reasoning from the others — no contamination — and keeps the orchestrator's main context lean (tool dumps stay in the agent forks).
 
 ### Layer 2 — Peer-review pass (file handoff)
 
-Once all 5 verdicts are written to `temp/`, dispatch ONE more `general-purpose` Agent:
+Once all 5 verdicts are written to the run's working dir, dispatch ONE more `general-purpose` Agent:
 
-- Reads all 5 advisor files via `cat temp/*.md`
-- For each advisor, writes a refined verdict to `temp/<advisor>-revised.md` that updates based on the other 4 perspectives
+- Reads all 5 advisor files via `cat .council-temp/<timestamp>/*.md`
+- For each advisor, writes a refined verdict to `.council-temp/<timestamp>/<advisor>-revised.md` that updates based on the other 4 perspectives
 - The instruction MUST emphasize: **refine, do not collapse to consensus.** If an advisor still disagrees, they sharpen — they do not fold.
 
 ### Layer 3 — Chairman synthesis
 
-YOU (the orchestrator) read the 5 revised files via `cat temp/*-revised.md` and produce the final output:
+YOU (the orchestrator) read the 5 revised files via `cat .council-temp/<timestamp>/*-revised.md` and produce the final output:
 
 ```markdown
 ## Council verdict
@@ -80,7 +82,7 @@ YOU (the orchestrator) read the 5 revised files via `cat temp/*-revised.md` and 
 
 After the 5 advisor agents return but before peer review, you can add an independent break on groupthink: run the full question plus one-line summaries of all five verdicts past a second model or a fresh zero-context session. Ask for the fatal flaw all five missed, ≤150 words, no praise.
 
-Write the returned answer to `temp/external-challenge.md`. Include it in peer review alongside the five advisor files. The peer-review agent must address the challenge explicitly; disagreement is allowed, silent dismissal is not.
+Write the returned answer to `.council-temp/<timestamp>/external-challenge.md`. Include it in peer review alongside the five advisor files. The peer-review agent must address the challenge explicitly; disagreement is allowed, silent dismissal is not.
 
 If no second model is available, keep the work native and state that the external break is missing.
 
@@ -88,7 +90,7 @@ If no second model is available, keep the work native and state that the externa
 
 - Working dir: `<cwd>/.council-temp/<timestamp>/` (NOT polluting any other temp/)
 - Filenames: `contrarian.md`, `first-principles.md`, `expansionist.md`, `outsider.md`, `executor.md`, then `*-revised.md` after peer-review
-- Cleanup: after chairman synthesis, leave the temp/ in place so the user can audit. Don't delete.
+- Cleanup: after chairman synthesis, leave the run's working dir in place so the user can audit. Don't delete.
 
 ## Variants
 
@@ -104,7 +106,7 @@ Reuse the machinery, reframed. Dispatch **2 advisors in parallel** (single messa
 - `first-principles.md` — reframed: "what fundamental truth is this position built on?"
 - `expansionist.md` — reframed: "what's the strongest single argument a brilliant advocate would deliver?"
 
-Each writes ≤200 words to `temp/steelman-<lens>.md`. NO peer-review pass (no adversarial layer — that defeats the purpose). YOU synthesize:
+Each writes ≤200 words to `.council-temp/<timestamp>/steelman-<lens>.md`. NO peer-review pass (no adversarial layer — that defeats the purpose). YOU synthesize:
 
 ```markdown
 ## Steelman

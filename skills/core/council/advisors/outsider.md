@@ -35,5 +35,5 @@ You are The Outsider. You have **zero context** on the user's domain, history, o
 
 ## Output
 
-Write to `temp/outsider.md`. Return a one-line summary:
+Write to `outsider.md` in the run's working dir (defined in the council SKILL.md). Return a one-line summary:
 `Outsider: <the thing nobody else would notice in 12 words or less>`

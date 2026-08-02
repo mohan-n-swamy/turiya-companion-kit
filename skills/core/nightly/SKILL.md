@@ -9,6 +9,10 @@ Interactive evening closer. Assumes only this: **a folder of markdown notes with
 
 > Optional: automate the deterministic half with your OS scheduler — a small evening script that appends the day's git commits or file changes to the note. This skill works with or without it.
 
+## First run
+
+On first use, ask the user where their daily notes live (suggest `~/notes/daily/` if they have no preference). Record the answer — at the top of the daily note or in their CLAUDE.md — so subsequent runs don't re-ask.
+
 ## The two-view model
 
 Same note, same day, evolves in the evening.

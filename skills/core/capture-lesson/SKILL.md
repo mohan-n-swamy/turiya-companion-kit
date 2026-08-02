@@ -23,11 +23,11 @@ Ask (or infer from conversation context):
 2. **Root cause** — Why it happened (the real "why", not the surface fix)
 3. **Fix** — What was done (commit hash if available)
 4. **Pattern** — The generalizable lesson (applicable beyond this specific case)
-5. **Category** — One of: `logic-bug`, `data-issue`, `config`, `deployment`, `prompt`, `architecture`, `performance`, `security`
+5. **Category** — One of: `logic-bug`, `data-issue`, `config`, `deployment`, `prompt`, `architecture`, `performance`, `security`, `other`
 
 ## Step 2: Save to Project Lessons File
 
-Append to `tasks/lessons.md` (create if it doesn't exist; if the repo already has a lessons-file convention elsewhere, use that instead) in **GP-NN format**:
+Append to `tasks/lessons.md` (create if it doesn't exist; if the repo already has a lessons-file convention elsewhere, use that instead; not in a repo? use `~/notes/lessons.md`) in **GP-NN format**:
 
 ```markdown
 ### GP-NN — [imperative rule, the generalizable lesson]. ([date], [category])

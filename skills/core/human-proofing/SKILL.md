@@ -7,6 +7,8 @@ description: "Always-on skill that detects AI-sounding patterns in any writing o
 
 This skill runs on every writing task. It does not replace writing-style or any content skill. It adds a detection and coaching layer on top.
 
+Note: on a stock install this skill fires when the model matches your request to its description. For true always-on behavior, add the CLAUDE.md line from the kit README.
+
 ## When to Fire
 
 Any time Claude is about to deliver, polish, or coach on written output. This includes newsletters, documents, emails, Slack messages, presentations, LinkedIn posts, decision docs, and feedback drafts.

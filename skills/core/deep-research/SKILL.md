@@ -8,6 +8,8 @@ description: |
 
 Not a single search-and-summarize. Five phases: decompose the question, search it from independent angles in parallel, extract falsifiable claims from real sources, try to kill each claim, then synthesize only what survived — with citations.
 
+No web tools available in this environment? Say so plainly and offer to run the same decompose-verify-synthesize discipline on sources the user provides.
+
 ## Phase 0 — Scope check (before anything)
 
 If the question is underspecified, ask 2-3 clarifying questions (budget, use-case, region, constraints, time horizon) and weave the answers into the research question. A vague question produces a vague report no matter how good the harness is.

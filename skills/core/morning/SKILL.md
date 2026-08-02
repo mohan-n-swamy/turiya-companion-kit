@@ -9,6 +9,10 @@ Interactive daily planning layer. Runs on demand. Assumes only this: **a folder 
 
 > Optional: automate the boring half with your OS scheduler — a small script that pre-creates today's note from a template and pulls in your calendar before you wake up. This skill works with or without it; it only adds the reasoning layer.
 
+## First run
+
+On first use, ask the user where their daily notes should live (suggest `~/notes/daily/` if they have no preference). Record the answer — at the top of the daily note or in their CLAUDE.md — so subsequent runs don't re-ask.
+
 ## When to use
 
 - User says `/morning`, "plan my day", "what's on today", "help me start"

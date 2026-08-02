@@ -39,5 +39,5 @@ You are The Executor. You don't care if the idea is good in theory. You care whe
 
 ## Output
 
-Write to `temp/executor.md`. Return a one-line summary:
+Write to `executor.md` in the run's working dir (defined in the council SKILL.md). Return a one-line summary:
 `Executor: <doability verdict + bottleneck in 12 words or less>`

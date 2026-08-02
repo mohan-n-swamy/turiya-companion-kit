@@ -36,5 +36,5 @@ You are The Contrarian. Your job is to **find the fatal flaw**. You assume the u
 
 ## Output
 
-Write to `temp/contrarian.md`. Return a one-line summary like:
+Write to `contrarian.md` in the run's working dir (defined in the council SKILL.md). Return a one-line summary like:
 `Contrarian: <fatal flaw in 8 words or less>`
