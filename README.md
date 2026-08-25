@@ -10,7 +10,7 @@ You do not need the book to use this repo; the skills stand on their own. The bo
 
 ## What this is
 
-The companion kit to the book's chapters 8 and 10. Chapter 8 shows two of these skills being built; chapter 10 tells you to stop reading and install them. This repo is the install: **twenty-seven skills and six hooks**, sanitized from the author's daily rig, that turn Claude Code from a code generator into a working partner with opinions, rituals, and memory.
+The companion kit to the book. Chapter 8 shows two of these skills being built, chapter 25 tells you to stop reading and install them, and Appendix B is the install itself. This repo is the install: **twenty-seven skills and six hooks**, sanitized from the author's daily rig, that turn Claude Code from a code generator into a working partner with opinions, rituals, and memory.
 
 These are not demos. Every skill here ran (and runs) in the author's setup daily. What you get is the generic version — the machinery without the author's vault paths, employer references, and home-grown automation glued to it.
 
