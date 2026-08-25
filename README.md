@@ -2,6 +2,12 @@
 
 Working Claude Code skills and hooks from the book — the actual files, not screenshots of them.
 
+## The book
+
+**[Same Starting Line: How a Non-Technical Operator Put AI to Work, and How You Can.](https://www.amazon.com/dp/B0HGF7P5FG)** — Mohan Narayanaswamy Natarajan. Kindle, ASIN `B0HGF7P5FG`.
+
+You do not need the book to use this repo; the skills stand on their own. The book is where the reasoning behind them lives — why each one exists, what it replaced, and what it cost to get wrong first.
+
 ## What this is
 
 The companion kit to the book's chapters 8 and 10. Chapter 8 shows two of these skills being built; chapter 10 tells you to stop reading and install them. This repo is the install: **twenty-seven skills and six hooks**, sanitized from the author's daily rig, that turn Claude Code from a code generator into a working partner with opinions, rituals, and memory.
@@ -149,3 +155,5 @@ What remains is the part that transfers: the disciplines. Those were always the 
 ## License
 
 MIT — see [LICENSE](LICENSE).
+
+The code in this repo is MIT. The book it accompanies is not — *Same Starting Line* is sold, and the reading lists inside these skills point at other people's books that are also sold. Take the mechanisms freely; buy the writing.
