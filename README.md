@@ -4,7 +4,9 @@ Working Claude Code skills and hooks from the book — the actual files, not scr
 
 ## The book
 
-**[Same Starting Line: How a Non-Technical Operator Put AI to Work, and How You Can.](https://www.amazon.com/dp/B0HGF7P5FG)** — Mohan Narayanaswamy Natarajan. Kindle, ASIN `B0HGF7P5FG`.
+**Same Starting Line: How a Non-Technical Operator Put AI to Work, and How You Can.** — Mohan Narayanaswamy Natarajan. Kindle, ASIN `B0HGF7P5FG`.
+
+[India](https://amzn.in/d/09HbKqNi) · [everywhere else](https://www.amazon.com/dp/B0HGF7P5FG) — free on Kindle Unlimited.
 
 You do not need the book to use this repo; the skills stand on their own. The book is where the reasoning behind them lives — why each one exists, what it replaced, and what it cost to get wrong first.
 
