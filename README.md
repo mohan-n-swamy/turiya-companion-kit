@@ -127,6 +127,16 @@ Every gate has an escape hatch, by design — an unsilenceable warning is a warn
 
 Two honest limits. `claim-vgate` counts quoted output in your own message as evidence, so a claim that recites its own proof text can satisfy it — it raises the cost of an unbacked claim, it does not make one impossible. And `dep-gate`'s block message lists every dependency it can see in the manifest, not only the added one; the block is correct, the list is noisy.
 
+## Rigor — the protocol behind the hooks
+
+The kit's hooks are individual rules. The Rigor protocol is the method they serve: six answers written before the work, evidence before the word "done", and ponytail as the counterweight that keeps the answers small. It ships as its own package so it stays one source:
+
+```bash
+brew install mohan-n-swamy/tap/rigor && rigor install
+```
+
+or from source: https://github.com/mohan-n-swamy/rigor. `rigor install` wires a pre-work gate (blocks the third ungoverned file), a done-gate (refuses an unevidenced claim) and the `/rigor` skill; `rigor uninstall` removes exactly that. It coexists with this kit's hooks.
+
 ## Make them yours
 
 The kit is a starting rig, not a finished one. Three expected moves:
