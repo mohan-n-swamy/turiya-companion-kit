@@ -6,9 +6,9 @@
 # DURING the turn (after each tool call), so the last line is always the last
 # thing done, even after a hard crash. No LLM, no git, fail-open, bounded.
 #
-# OUTPUT: ~/.claude/state/breadcrumbs/<session_id>.log  (one line per tool call)
+# OUTPUT: ~/.claude/state/breadcrumbs/claude-<session_id>.log  (one line per tool call)
 #   FORMAT: ISO8601 | tool_name | target
-# READ IT: tail ~/.claude/state/breadcrumbs/<session_id>.log
+# READ IT: tail ~/.claude/state/breadcrumbs/claude-<session_id>.log
 #
 # DISABLE: touch ~/.claude/state/breadcrumbs/.off
 

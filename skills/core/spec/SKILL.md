@@ -11,14 +11,14 @@ description: |
 
 ## When to invoke
 
-- Any build spanning **>1 session** or run **unattended** (overnight-build queue, People Desk, voc waves, anything resumed across `/clear`).
+- Any build spanning **>1 session** or run **unattended** (an overnight build queue, a multi-wave rollout, anything resumed across `/clear`).
 - Before generating a task list for non-trivial work.
 
 **Skip** for: surgical 1-file changes, typos, log lines, throwaway scratch (those don't earn the ceremony — same bar as rigor-protocol's trivial-skip).
 
 ## The discipline this serves
 
-Discipline (gate hook retired 2026-07-31): never write `specs/<feature>/tasks.md` until the sibling `spec.md` has a populated `## End-State` AND `## Success Criteria`. This skill makes that path the easy path: it scaffolds the spec with those two sections first, derived **backward from the gold artifact** (People Desk method), never forward from tasks.
+Discipline (gate hook retired 2026-07-31): never write `specs/<feature>/tasks.md` until the sibling `spec.md` has a populated `## End-State` AND `## Success Criteria`. This skill makes that path the easy path: it scaffolds the spec with those two sections first, derived **backward from the gold artifact**, never forward from tasks.
 
 ## Steps
 

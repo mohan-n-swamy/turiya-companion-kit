@@ -10,6 +10,9 @@ The kit's own `steal-ladder` skill ends with: *attribute, or don't ship.* This i
 - **triage-inbox** — built on Andy Matuschak's [writing-inbox notes](https://notes.andymatuschak.org/A_writing_inbox_for_transient_and_incomplete_notes) ("inboxes only work if you trust how they're drained").
 - **config-protection hook** — adapted from the `config-protection` hook in **affaan-m/ECC**. Re-implemented here as a clean named shell hook (ECC ships it as an inlined node blob; this does not). License: not verified — verify before relying on the upstream itself.
 - **book-distill conventions** — the fold-by-domain rule, the cost gate, parallel synthesis with centralized writes, and the verification gate are this kit's; the extraction step and the book→skill idea come from [book-to-skill](https://github.com/virgiliojr94/book-to-skill) (MIT).
+- **design-source-gate failure receipt** — the `code / subject / evidence / supportedFixes` block shape is adapted from [tt-a1i/archify](https://github.com/tt-a1i/archify) (MIT): the repair contract binds the model to listed fixes instead of improvising.
+- **manufacture assemble: pass paths, not bodies** — handing the executor a spec path to read in its own context, rather than pasting the spec, is from [gsd-build/get-shit-done](https://github.com/gsd-build/get-shit-done) (MIT).
+- **manuf-product-design deep-module framing** — John Ousterhout, *A Philosophy of Software Design*: pull complexity down into the module, away from the caller.
 - **writing-style / human-proofing frameworks** — summarize published craft books: *The Pyramid Principle* (Barbara Minto), *Made to Stick* (Chip & Dan Heath), Hemingway's iceberg theory, *Nobody Wants to Read Your Sh\*t* (Steven Pressfield). The kit ships working rules, not the books' text — read the originals.
 
 ## Books the lens skills are built on
@@ -33,6 +36,8 @@ These are third-party or third-party-derived skills the book discusses. They shi
 - **auteur** — [pejmanjohn/auteur](https://github.com/pejmanjohn/auteur) (npm package; bundles its own Claude skill). The book's "auteur as a skill" chapter teaches the install command. License: check the repo before relying.
 - **taste-skill (frontend-taste upstream)** — [Leonxlnx/taste-skill](https://github.com/Leonxlnx/taste-skill), MIT. The author's private adaptation stays private; the upstream is the thing to install.
 - **wayfinder** — [mattpocock/skills](https://github.com/mattpocock/skills). License: not verified — verify before relying.
+- **rigor** — [mohan-n-swamy/rigor](https://github.com/mohan-n-swamy/rigor), MIT, same author. The protocol behind these hooks (six answers before the work, evidence before "done"). Kept as its own package so it has one source; the Homebrew formula for this kit installs it as a dependency.
+- **mcp-brain-router** — [mohan-n-swamy/mcp-brain-router](https://github.com/mohan-n-swamy/mcp-brain-router), MIT, same author. An optional MCP model router the `delegate` skill and `workflows/` can use to send work to other model families. Not required: without it, delegation runs on Claude Code subagents.
 - **book-to-skill** — [virgiliojr94/book-to-skill](https://github.com/virgiliojr94/book-to-skill), MIT. The extraction engine behind book distillation. The kit's `book-distill` skill is a convention layer that calls its `extract.py`; the engine itself is not vendored — install it from the repo and run it on books you own.
 
 ## Unverified-license rule

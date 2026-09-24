@@ -7,12 +7,16 @@
 #                    settings.json — a hook that installs itself into your
 #                    config without asking is exactly the thing these hooks
 #                    exist to prevent.
+# Harness (--harness): skills + hooks + workflows (workflows/ into
+#                    ~/.claude/workflows/, where Claude Code finds saved
+#                    Workflow scripts). The full build pipeline.
 #
-# Neither mode ever overwrites a file that already exists.
+# No mode ever overwrites a file that already exists.
 #
 # Usage:
 #   ./install.sh              # skills only
 #   ./install.sh --hooks      # skills + hooks
+#   ./install.sh --harness    # skills + hooks + workflows
 #   ./install.sh --hooks-only # hooks only
 #   ./install.sh --help
 
@@ -23,16 +27,20 @@ SRC_DIR="$KIT_DIR/skills/core"
 HOOK_SRC="$KIT_DIR/hooks"
 DEST_DIR="$HOME/.claude/skills"
 HOOK_DEST="$HOME/.claude/hooks"
+WF_SRC="$KIT_DIR/workflows"
+WF_DEST="$HOME/.claude/workflows"
 
 DO_SKILLS=1
 DO_HOOKS=0
+DO_WF=0
 
 for arg in "$@"; do
     case "$arg" in
         --hooks)      DO_HOOKS=1 ;;
+        --harness)    DO_HOOKS=1; DO_WF=1 ;;
         --hooks-only) DO_HOOKS=1; DO_SKILLS=0 ;;
         --help|-h)
-            sed -n '2,20p' "$0" | sed 's/^# \{0,1\}//'
+            sed -n '2,23p' "$0" | sed 's/^# \{0,1\}//'
             exit 0 ;;
         *)
             echo "error: unknown option '$arg' (try --help)" >&2
@@ -109,7 +117,10 @@ if [ "$DO_HOOKS" -eq 1 ]; then
       "hooks": [ { "type": "command", "command": "bash ~/.claude/hooks/freeze-gate.sh" } ] },
     { "matcher": "Write|Edit",
       "hooks": [ { "type": "command", "command": "bash ~/.claude/hooks/dep-gate.sh" },
-                 { "type": "command", "command": "bash ~/.claude/hooks/config-protection.sh" } ] }
+                 { "type": "command", "command": "bash ~/.claude/hooks/config-protection.sh" },
+                 { "type": "command", "command": "bash ~/.claude/hooks/design-source-gate.sh" } ] },
+    { "matcher": "Bash",
+      "hooks": [ { "type": "command", "command": "bash ~/.claude/hooks/manuf-pack-validate.sh" } ] }
   ],
   "PostToolUse": [
     { "matcher": "*",
@@ -121,10 +132,36 @@ if [ "$DO_HOOKS" -eq 1 ]; then
   ]
 
 JSON
+    echo "manuf-qa-stamp.sh is not wired to an event: the QA skills and the"
+    echo "manufacture workflow call it directly."
+    echo ""
     echo "careful-gate and freeze-gate stay invisible until you turn them on:"
     echo "    touch ~/.claude/state/careful.flag     # pause irreversible ops"
     echo "    touch ~/.claude/state/freeze.flag      # hard read-only"
     echo "    rm    ~/.claude/state/<name>.flag      # off again"
+fi
+
+# ── workflows ─────────────────────────────────────────────────────────────
+if [ "$DO_WF" -eq 1 ]; then
+    mkdir -p "$WF_DEST/lib"
+    w_installed=0
+    w_skipped=0
+    for wf in "$WF_SRC"/*.js "$WF_SRC"/lib/*.js; do
+        [ -f "$wf" ] || continue
+        rel=${wf#"$WF_SRC"/}
+        target="$WF_DEST/$rel"
+        if [ -e "$target" ]; then
+            echo "SKIP  $rel — $target already exists"
+            w_skipped=$((w_skipped + 1))
+        else
+            cp "$wf" "$target"
+            echo "OK    $rel -> $target"
+            w_installed=$((w_installed + 1))
+        fi
+    done
+    echo ""
+    echo "Workflows: $w_installed installed, $w_skipped skipped."
+    echo "Run one by asking Claude: \"run the manufacture workflow in assemble mode on specs/NNN-feature\"."
 fi
 
 echo ""
