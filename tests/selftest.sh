@@ -161,8 +161,12 @@ grep -q "Skills: 0 installed" "$T/i2" && grep -q "Hooks: 0 installed" "$T/i2" &&
 echo "== kit hygiene"
 "$KIT/scripts/leak-sweep.sh" >/dev/null && ok "no private references" || bad "no private references (run scripts/leak-sweep.sh)"
 "$KIT/scripts/leak-sweep.sh" --refs >/dev/null && ok "every referenced kit path exists" || bad "every referenced kit path exists (run scripts/leak-sweep.sh --refs)"
-"$KIT/scripts/leak-sweep.sh" --counts >/dev/null && ok "README counts match" || bad "README counts match (run scripts/leak-sweep.sh --counts)"
-"$KIT/scripts/leak-sweep.sh" --explained >/dev/null && ok "every component explained in README" || bad "every component explained in README (run scripts/leak-sweep.sh --explained)"
+if [ -f "$KIT/README.md" ]; then
+  "$KIT/scripts/leak-sweep.sh" --counts >/dev/null && ok "README counts match" || bad "README counts match (run scripts/leak-sweep.sh --counts)"
+  "$KIT/scripts/leak-sweep.sh" --explained >/dev/null && ok "every component explained in README" || bad "every component explained in README (run scripts/leak-sweep.sh --explained)"
+else
+  echo "SKIP  README checks (no README.md here — a Homebrew install keeps it in the keg root)"
+fi
 
 echo
 echo "$pass passed, $fail failed"
