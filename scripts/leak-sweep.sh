@@ -15,17 +15,22 @@ cd "$KIT"
 # Author credit is allowed in these files only.
 CREDIT_OK='^(README\.md|LICENSE|ATTRIBUTIONS\.md)$'
 
-# Case-insensitive, extended regex. One line per class so a hit names its class.
+# Generic classes only. This file is public, so it must not itself list the
+# private names it guards against. Put those in a file outside the repo (one
+# "class|regex" per line, # comments allowed) and point LEAK_PATTERNS_FILE at
+# it; the default location is ~/.config/turiya-kit/private-patterns.txt.
 PATTERNS=(
-  'author-name|mohan|narayanaswamy|natarajan'
-  'email|[a-z0-9._%+-]+@(gmail|orangehealth|anthropic)\.[a-z.]+'
   'home-path|/Users/|/home/[a-z]'
-  'employer|orange ?health|orangehealth|\bOH\b|\bVoC\b|emedic|gurukul|phlebo|kamakshi|people desk|voc[- ]?(waves|control|dashboard)'
-  'design-kit-id|8afb6df4|7cbced05'
-  'rig-path|~/\.agents|\.agents/|golden-rules|EVIDENCE-DOCTRINE|communication-doctrine|RIGOR-ALGORITHM|discovery-cascade'
-  'rig-service|open ?brain|openbrain|search_chunks|\brtk\b|atuin|statusbar|kimi|\bglm\b|grok|deepseek|brain-delegate'
   'secret|(sk-ant-|sk-[A-Za-z0-9]{20}|ghp_[A-Za-z0-9]{20}|AKIA[0-9A-Z]{16}|xox[baprs]-)'
+  'private-key|BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY'
 )
+PRIVATE=${LEAK_PATTERNS_FILE:-$HOME/.config/turiya-kit/private-patterns.txt}
+if [ -f "$PRIVATE" ]; then
+  while IFS= read -r line; do
+    case "$line" in ''|'#'*) continue ;; esac
+    PATTERNS+=("$line")
+  done < "$PRIVATE"
+fi
 
 scan() {
   local hits=0 f cls re rel

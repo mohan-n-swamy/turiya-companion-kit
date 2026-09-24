@@ -183,21 +183,21 @@ for f in spec.md manifest.json execution-plan.md risks.md verification.md; do
   [ -f "$PACK/$f" ] || err "missing required file: $f"
 done
 
-# ── 2. spec.md carries End-State + Success Criteria (spec-gate parity) ─────────
+# ── 2. spec.md carries End-State + Success Criteria ───────────────────────────
 if [ -f "$PACK/spec.md" ]; then
   grep -qE '^##[[:space:]]+End-State' "$PACK/spec.md" || err "spec.md has no ## End-State"
   grep -qE '^##[[:space:]]+Success Criteria' "$PACK/spec.md" || err "spec.md has no ## Success Criteria"
 fi
 
 # ── 2b. Phase 0 product artifacts are present AND user-locked ──────────────────
-# SHAPE gate: no design half without a locked PRD + PR-FAQ (references/shape.md).
+# No design half without a PRD + PR-FAQ the user has locked.
 # Stamp grammar: 'Locked: YYYY-MM-DD by <user>' (bold-tolerant). HONEST LIMIT:
 # bash proves the stamp EXISTS, not that a human typed LOCKED — that residual
-# risk is guarded by PR review of the pack (risks.md R2).
+# risk is guarded by reviewing the pack PR.
 LOCK_RE='^[[:space:]]*(\*\*)?Locked(\*\*)?:[[:space:]]*[0-9]{4}-[0-9]{2}-[0-9]{2}[[:space:]]+by[[:space:]]+.+'
 for pf in prd.md pr-faq.md; do
   if [ ! -f "$PACK/$pf" ]; then
-    err "missing Phase 0 artifact: $pf (SHAPE S/H/A — author + user-lock it before the design half)"
+    err "missing Phase 0 artifact: $pf (write it and have the user lock it before the design half)"
   elif ! grep -qE "$LOCK_RE" "$PACK/$pf"; then
     err "$pf has no 'Locked: YYYY-MM-DD by <user>' stamp — Phase 0 gate #1 not passed (never self-stamp)"
   fi
@@ -206,8 +206,7 @@ done
 # ── 3. Every component/*.md has all 7 Haiku-proof fields ──────────────────────
 # Each field must appear as a STRUCTURED LABEL — a line that begins with the
 # field name (optionally as a markdown heading or bold), followed by ':' or a
-# heading. This rejects the "keyword buried in prose" false-pass (adversary
-# finding #3): `CODE logic in the narrative` no longer satisfies the CODE field;
+# heading. This rejects the "keyword buried in prose" false-pass : `CODE logic in the narrative` no longer satisfies the CODE field;
 # a real `## CODE`, `**CODE**:`, `CODE:` label does.
 # HONEST LIMIT: bash proves the field is STRUCTURALLY PRESENT, not that its body
 # holds real verbatim code / a real file:line. That semantic grade is the
@@ -229,7 +228,7 @@ fi
 
 # ── 4. risks.md names mitigation AND detection (no undetected failure mode) ────
 # Negation-aware: 'unmitigated' / 'no mitigation' must NOT satisfy the mitigation
-# check (adversary finding #6). Require a positive mitigation/detection label line.
+# check. Require a positive mitigation/detection label line.
 if [ -f "$PACK/risks.md" ]; then
   grep -qiE '^[[:space:]]*(#{1,6}[[:space:]]*|\*\*|-[[:space:]]+|\|)?[[:space:]]*mitigat(e|ion)' "$PACK/risks.md" \
     || err "risks.md names no mitigation (need a 'mitigation:' label, not the word buried/negated in prose)"

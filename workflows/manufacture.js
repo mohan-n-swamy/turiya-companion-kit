@@ -19,6 +19,35 @@ export const meta = {
   ],
 }
 
+// ─── what this is ────────────────────────────────────────────────────────────
+// The /manufacture protocol as a Claude Code Workflow script, so the gates run
+// in a fixed order instead of relying on the model to remember them.
+// Requires Claude Code's Workflow tool. Installed by `install.sh --harness`
+// into ~/.claude/workflows/. Start it by asking Claude, e.g.
+//   "run the manufacture workflow in assemble mode on /abs/repo/specs/003-saved-searches"
+//
+// MODES
+//   assemble  args = { mode:'assemble', pack:'/abs/specs/NNN-feature', cwd:'/abs/repo' }
+//             Builds a pack written by /manuf-product-design:
+//             validate → design-qa stamp ≥ A → each component by tier (halt on
+//             red) → manuf-qa stamp ≥ A → adversary → pressure-test → gate.
+//   single    args = { mode:'single', goal:'…', criteria:[{ id, check, pass_when }], cwd }
+//             One pass of Diagnose → Machine → Implement → adversary → pressure → gate
+//             on a change that has no pack.
+//   loop      same args as single, plus maxIters (default 5). Repeats the pass,
+//             feeding the previous pass's blockers into the next Diagnose, until
+//             SHIP or the cap.
+//   Optional: lenses: ['name — the question the reviewer must answer', …]
+//             overrides the adversary lenses; minBudget stops loop mode early.
+//
+// OUTPUT  { verdict: 'SHIP' | 'NEEDS_WORK' | 'BLOCK', reason, … } — a BLOCK
+//         names the failing gate, component or finding.
+//
+// HONEST LIMIT  Each gate is a step an agent runs (validator, QA skill, stamp
+// check). The script fixes the ORDER and refuses to continue on a red result;
+// it cannot stop a model that fabricates a QA grade. The stamps are a record
+// you can audit (pack/.qa/*.json), not a proof.
+
 // ─── args ────────────────────────────────────────────────────────────────────
 // args may arrive as an object OR a JSON string (runtime-dependent); parse both.
 const a = (() => {
@@ -40,13 +69,13 @@ const MODE       = (a.mode === 'assemble') ? 'assemble'
 const MAX_ITERS  = Number(a.maxIters) > 0 ? Number(a.maxIters) : 5
 const MIN_BUDGET = Number(a.minBudget) > 0 ? Number(a.minBudget) : 60_000
 // Full lens set (5). Sized down by blast-radius at run time (sizeLenses) unless
-// the caller passes an explicit args.lenses override. control-flow + over-close
+// the caller passes an explicit args.lenses override. control-flow + foreign-input
 // are the ALWAYS-ON floor (a foreign input reaching the wrong branch is the
 // commonest real break); the state-touching lenses (mutation/coupling/exception)
 // are added only when the diff actually touches shared state.
 const ALWAYS_LENSES = [
   'control-flow — can a foreign input reach the wrong branch and be mishandled?',
-  'over-close — does this wrongly close/resolve/terminate something it should not?',
+  'foreign-input — can an input meant for another branch reach this one and be mishandled (wrongly closed, deleted, sent)?',
 ]
 const STATE_LENSES = [
   'mutation/purity — does the change corrupt shared state or violate immutability?',
@@ -230,9 +259,9 @@ async function runBackHalf({ adversaryGoal, diffScope, pressureContext, criteria
   const pressure = await smart(
     `## Pressure-test — design-judgment triad${pressureContext}\n\n` +
     `The adversarial "how it fails / best reason it fails" was just covered by the refuter lenses. Answer the remaining three:\n` +
-    `1. Edge cases: cold-start · empty input · concurrent runs · /clear mid-flow · cross-machine · permission denial · stale cache.\n` +
+    `1. Edge cases: cold-start · empty input · concurrent runs · interrupted mid-flow · two processes at once · permission denial · stale cache.\n` +
     `2. Half-resources alternative + why this way? If the half-resource alt is almost as good, this is over-engineered — justify.\n` +
-    `3. Tenets + boundaries: Cover · Restructure-over-patch · Cadence · Use-cases · Fail-modes.\n\n` +
+    `3. Tenets (as defined in the stress-test skill): Cover · Restructure-over-patch · Cadence · Use-cases · Fail-modes.\n\n` +
     `Verdict: SHIP (no fixable gap) · NEEDS_WORK (fixable gaps in fixes_needed) · BLOCK (fatal design miss).`,
     { complexity: 'code', label: 'pressure', phase: 'Pressure-test', schema: PRESSURE_SCHEMA }
   )
@@ -263,14 +292,21 @@ async function runBackHalf({ adversaryGoal, diffScope, pressureContext, criteria
 }
 
 // ─── one manufacture pass ────────────────────────────────────────────────────
-async function runManufacturePass(iter) {
+async function runManufacturePass(iter, prior = null) {
   const iterTag = MODE === 'loop' ? ` (iteration ${iter})` : ''
   const criteriaStr = CRITERIA.map(c => `  - ${c.id}: \`${c.check}\` passes when ${c.pass_when}`).join('\n')
+  // loop mode: the previous pass's blockers are the first thing this pass must fix
+  const priorStr = prior
+    ? `\n\nPREVIOUS PASS ENDED ${prior.verdict}: ${prior.reason ?? ''}\n` +
+      [...(prior.blocking || []), ...(prior.fixes || []), ...((prior.criteria || []).filter(c => !c.met).map(c => `${c.id} unmet: ${c.evidence}`))]
+        .map(x => `  - ${x}`).join('\n') +
+      `\nStart by diagnosing and fixing exactly these. Do not repeat the previous pass unchanged.`
+    : ''
 
   // ── 9.1 Diagnose ──────────────────────────────────────────────────────────
   phase('Diagnose')
   const diagnosis = await agent(
-    `## Diagnose${iterTag}\n\nGoal: ${GOAL}\n\nSuccess criteria:\n${criteriaStr}\n\n` +
+    `## Diagnose${iterTag}\n\nGoal: ${GOAL}\n\nSuccess criteria:\n${criteriaStr}${priorStr}\n\n` +
     `READ the actual files (no memory). Form the hypothesis. Trace the fix end-to-end in your head. ` +
     `BEFORE claiming a gap exists, read the surface that supposedly has it — prove it is REAL (cite file:line). ` +
     `If the gap is already handled, say so (phantom gap = do not fix a non-bug). ` +
@@ -464,7 +500,7 @@ async function runAssemble() {
       `PLACEMENT (exact file:line) · CODE (verbatim) · COMMANDS (exact) · EXPECTED (exact output) · PRECONDITIONS · POSTCONDITIONS · STOP.\n\n` +
       `Execute EXACTLY:\n` +
       `1. FIT-CHECK BEFORE: verify PRECONDITIONS — read the exact slot (file:line), confirm it matches the spec. ` +
-      `A precondition file path is checked AT THE PATH THE SPEC WRITES (resolve \`~\`/\`$HOME\` to the real home; \`~/.local/bin/X\` means \`$HOME/.local/bin/X\`) — do NOT restrict the check to the working directory. Use \`ls <abs-path>\` / \`test -f <abs-path>\`, never a cwd-scoped \`find\` for a file the spec locates outside the cwd. ` +
+      `A precondition file path is checked AT THE PATH THE SPEC WRITES (resolve \`~\`/\`$HOME\` to the real home directory) — do NOT restrict the check to the working directory. Use \`ls <abs-path>\` / \`test -f <abs-path>\`, never a cwd-scoped \`find\` for a file the spec locates outside the cwd. ` +
       `If reality ≠ spec, STOP with status="RED" (do NOT code against a wrong slot; the planner must fix the pack).\n` +
       `2. APPLY: write the verbatim CODE at the PLACEMENT. One commit, tight message. Touch ONLY files the spec names (no-drift).\n` +
       `3. FIT-CHECK AFTER: run each COMMAND, diff actual output against EXPECTED, verify all POSTCONDITIONS (binary). Any mismatch → status="RED".\n` +
@@ -564,7 +600,7 @@ for (let i = 1; i <= MAX_ITERS; i++) {
     log(`Budget floor hit (${MIN_BUDGET} remaining) at iteration ${i} — stopping`)
     return { status: 'capped', reason: 'budget', iter: i, lastResult }
   }
-  lastResult = await runManufacturePass(i)
+  lastResult = await runManufacturePass(i, lastResult)
   if (lastResult.verdict === 'SHIP') {
     log(`SHIP at iteration ${i}`)
     return { status: 'done', ...lastResult }

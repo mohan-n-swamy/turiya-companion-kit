@@ -87,7 +87,28 @@ const A = { mode: 'assemble', pack: PACK, cwd: '/repo' }
   const { result } = await run(A, happy({ 'adversary:lens-0': { blocking: ['auth.ts:12 bypass'], verdict: 'BLOCKING ISSUES FOUND' } }))
   ok('blocking adversary finding → BLOCK', result.verdict === 'BLOCK' && result.blocking?.length === 1)
 }
-// 8. argument validation
+// 8. loop mode feeds pass 1's blocker into pass 2's Diagnose, then ships
+{
+  let pass1 = true
+  const L = { mode: 'loop', goal: 'fix the cache', criteria: [{ id: 'SC1', check: 'npm test', pass_when: 'exit 0' }], maxIters: 3 }
+  const { result, calls } = await run(L, (prompt, opts) => {
+    const l = opts.label || ''
+    if (l.startsWith('diagnose')) return { hypothesis: 'h', root_cause: 'r', files_to_read: [], phantom_gap_check: 'p' }
+    if (l.startsWith('machine')) return { parts: [{ id: 'P1', function: 'f', boundary: { owns: 'a', must_not_touch: 'b', must_preserve: 'c' }, placement: 'x:1' }] }
+    if (l.startsWith('implement')) return { couplings: [] }
+    if (l === 'blast-probe') return { shared_state_hits: 0 }
+    if (l === 'adversary:lens-0' && pass1) { pass1 = false; return { blocking: ['cache.ts:9 stale key survives restart'], verdict: 'BLOCKING ISSUES FOUND' } }
+    if (l.startsWith('adversary')) return { blocking: [], verdict: 'NO BLOCKING ISSUES' }
+    if (l === 'pressure') return { verdict: 'SHIP' }
+    if (l === 'gate') return { verdict: 'SHIP', criteria_all_met: true, served_equals_built: true, criteria: [{ id: 'SC1', met: true, evidence: 'exit 0' }] }
+    return null
+  })
+  const d2 = calls.find(c => c.opts.label === 'diagnose (iteration 2)')
+  ok('loop: second pass ran', !!d2)
+  ok('loop: pass 2 Diagnose carries pass 1 blocker', !!d2 && d2.prompt.includes('cache.ts:9 stale key survives restart'))
+  ok('loop: ships on pass 2', result.status === 'done' && result.verdict === 'SHIP')
+}
+// 9. argument validation
 {
   const { result } = await run({ mode: 'assemble' }, happy())
   ok('assemble without pack → error', !!result.error)

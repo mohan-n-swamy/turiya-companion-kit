@@ -1,33 +1,33 @@
 ---
 name: spec
 description: |
-  Scaffold a durable on-disk feature spec (start-with-the-end) — specs/NNN-feature/ with spec.md + plan.md, End-State & Success Criteria first; End-State + Success Criteria filled BEFORE tasks.md (order is discipline; gate hook retired 2026-07-31). For non-trivial multi-session/unattended builds. Triggers: "/spec", "scaffold a spec", "start a feature spec", "new feature spec", "spec this out", "begin with the end".
+  Scaffold a durable on-disk feature spec (start-with-the-end) — specs/NNN-feature/ with spec.md + plan.md, End-State & Success Criteria first; End-State + Success Criteria filled BEFORE tasks.md (the order is the discipline). For non-trivial multi-session/unattended builds. Triggers: "/spec", "scaffold a spec", "start a feature spec", "new feature spec", "spec this out", "begin with the end".
 
 ---
 
 # /spec — scaffold a durable, end-first feature spec
 
-> Implements `design-discipline.md §8` (spec-kit net-adds). The spec is the project-side twin of `/park`: it lives in the repo, git-versioned, readable by any agent across any `/clear`. Begin with the END.
+> The spec is the project-side twin of `/park`: it lives in the repo, git-versioned, readable by any agent across any `/clear`. Begin with the END.
 
 ## When to invoke
 
 - Any build spanning **>1 session** or run **unattended** (an overnight build queue, a multi-wave rollout, anything resumed across `/clear`).
 - Before generating a task list for non-trivial work.
 
-**Skip** for: surgical 1-file changes, typos, log lines, throwaway scratch (those don't earn the ceremony — same bar as rigor-protocol's trivial-skip).
+**Skip** for: surgical 1-file changes, typos, log lines, throwaway scratch (those don't earn the ceremony — the same bar as the [rigor](https://github.com/mohan-n-swamy/rigor) protocol's small-change skip).
 
 ## The discipline this serves
 
-Discipline (gate hook retired 2026-07-31): never write `specs/<feature>/tasks.md` until the sibling `spec.md` has a populated `## End-State` AND `## Success Criteria`. This skill makes that path the easy path: it scaffolds the spec with those two sections first, derived **backward from the gold artifact**, never forward from tasks.
+Discipline: never write `specs/<feature>/tasks.md` until the sibling `spec.md` has a populated `## End-State` AND `## Success Criteria`. This skill makes that path the easy path: it scaffolds the spec with those two sections first, derived **backward from the finished thing** (what the user will hold when it is done), never forward from tasks.
 
 ## Steps
 
-1. **Resolve the feature name** from the user's args → a 2-4-word kebab slug (e.g. `people-desk-tier1`). If none given, ask one short question.
+1. **Resolve the feature name** from the user's args → a 2-4-word kebab slug (e.g. `invoice-email-parser`). If none given, ask one short question.
 2. **Find the repo root** of the current project (the `claude projects/**` dir you're working in, or cwd). Specs live at `<repo>/specs/`.
 3. **Compute the next number**: list `specs/`, take `max(NNN)+1` zero-padded to 3 (`001`, `002`, …). New dir = `specs/<NNN>-<slug>/`.
 4. **Write `spec.md`** from the template below. Leave the `[NEEDS CLARIFICATION: …]` placeholders in End-State + Success Criteria — fill them with real content before writing tasks.md (do NOT pre-fill with filler).
 5. **Write `plan.md`** from the plan stub below (HOW + stack — filled after the spec is real).
-6. **Do NOT create `tasks.md`.** It is gated. Tell the user: fill End-State + Success Criteria first, then run `/spec tasks` (or just write `tasks.md` — the gate will allow it once the spec is real).
+6. **Do NOT create `tasks.md` yet.** Tell the user: fill End-State + Success Criteria first, then run `/spec tasks` (or write `tasks.md` by hand once the spec is real).
 7. **Report**: the created paths + the exact next action ("fill `## End-State` and `## Success Criteria` in spec.md, working backward from the ideal finished artifact").
 
 ## spec.md template
@@ -110,16 +110,16 @@ Discipline (gate hook retired 2026-07-31): never write `specs/<feature>/tasks.md
 
 - The split is load-bearing: **spec = WHAT/WHY + End-State + Success Criteria · plan = HOW + stack · tasks = checklist w/ file paths**.
 - Do not reach for a spec-kit toolkit (`specify init` and friends). This skill *is* the pattern; a toolkit on top duplicates it.
-- Pair with `/stress-test` once the spec is filled (the gate enforces order + presence; stress-test checks quality).
+- Pair with `/stress-test` once the spec is filled (this skill enforces order + presence; stress-test checks quality).
 
 ## Examples
 
 **Example 1 — new multi-session build**
-> User: `/spec people-desk tier-1 extraction`
-> Action: find repo root, see `specs/` has `001-…` → next is `002`. Create `specs/002-people-desk-tier1/spec.md` + `plan.md` from templates. Do not create `tasks.md`.
-> Report: "Created `specs/002-people-desk-tier1/{spec.md, plan.md}`. Next: fill `## End-State` (the ideal tracker — e.g. 5 Basava rows matching the gold) and `## Success Criteria` (e.g. SC-001 NOISE precision ≥ 0.9), working backward from the gold. `tasks.md` is gated until those are real."
+> User: `/spec parse supplier invoices from email`
+> Action: find repo root, see `specs/` has `001-…` → next is `002`. Create `specs/002-invoice-email-parser/spec.md` + `plan.md` from templates. Do not create `tasks.md`.
+> Report: "Created `specs/002-invoice-email-parser/{spec.md, plan.md}`. Next: fill `## End-State` (the finished output — e.g. last month's 40 invoices as rows that match what finance keyed by hand) and `## Success Criteria` (e.g. SC-001 amount matches on ≥ 98% of rows), working backward from that finished output. Write `tasks.md` only after both are real."
 
-**Example 2 — trying to skip ahead (the gate fires)**
+**Example 2 — trying to skip ahead**
 > Agent fills only the user's ask into spec.md, leaves End-State as `[NEEDS CLARIFICATION]`, then tries to Write `specs/002-…/tasks.md`.
 > Rule: define the END before the WORK — fill End-State + Success Criteria, then write tasks.md.
 
@@ -129,10 +129,9 @@ Discipline (gate hook retired 2026-07-31): never write `specs/<feature>/tasks.md
 
 ## Troubleshooting
 
-- **"spec-gate blocked my tasks.md write"** — working as designed. The sibling `spec.md` is missing or its `## End-State` / `## Success Criteria` is empty or placeholder-only (`[NEEDS CLARIFICATION]`, `TBD`, `<…>`). Fill both with real, ≥15-char content, then retry. Genuine scratch spec → user replies `spec-gate-ok` (literal) to bypass for the session.
-- **"the gate didn't fire"** — it only matches paths ending `specs/<feature>/tasks.md`. A task list written anywhere else (e.g. `TODO.md`, `tasks/foo.md`) is not gated. Use the `specs/<feature>/` layout to get enforcement.
+- **"can I write tasks.md now?"** — only once the sibling `spec.md` has a real `## End-State` and `## Success Criteria` (not `[NEEDS CLARIFICATION]`, `TBD` or `<…>`). Nothing enforces this for you; the order is the discipline.
 - **"what number do I use?"** — `max(existing NNN) + 1`, zero-padded to 3. If `specs/` is empty, start at `001`.
-- **"plan.md and tasks.md both gated?"** — no, only `tasks.md` is gated. `plan.md` is free (it's downstream of a real spec but the gate doesn't enforce it). Fill plan after the spec's End-State + Criteria are real.
+- **"plan.md before tasks.md?"** — `plan.md` comes after a real spec and before tasks. Fill it once the spec's End-State + Criteria are real.
 
 ## Related
 - `/park` — session-side twin (resume-state.md)

@@ -21,7 +21,8 @@ The skills are advice the model chooses to follow. The hooks are not: they are s
 ## Prereqs
 
 - [Claude Code](https://claude.com/claude-code) installed and working (`claude` on your PATH)
-- A terminal. That's it — no plugins, no MCP servers, no note-taking app required. The daily-ritual skills assume only "a folder of markdown notes, one per day."
+- A terminal. No plugins, no MCP servers, no note-taking app required. The daily-ritual skills assume only "a folder of markdown notes, one per day."
+- For the hooks: `python3` (most hooks are a few lines of shell around Python). For the build pipeline also `jq` (the pack validator refuses to pass a pack it cannot parse) and `node` if you want to run the workflow tests. Homebrew installs none of these for you; `brew install jq` if missing.
 
 ## Install
 
@@ -33,6 +34,8 @@ turiya-skills              # skills only
 turiya-skills --hooks      # skills and hooks
 turiya-skills --harness    # skills, hooks and workflows — the full build pipeline
 ```
+
+The five build-pipeline skills (`manuf-*`, `manufacture`) call the pack validator and the stamp script in `~/.claude/hooks/`, so install them with `--harness` (or `--hooks`). A skills-only install leaves those two scripts missing. `--hooks-only` installs just the hooks.
 
 The formula also installs [rigor](https://github.com/mohan-n-swamy/rigor), the protocol the hooks serve (run `rigor install` once to wire it). `brew upgrade turiya-skills` gets new releases.
 
@@ -147,13 +150,15 @@ Asked to "build X", a model will plan, design and code in one breath, then tell 
 | `manufacture` | skill | Builds the pack (or a smaller change) and makes adversaries try to break it before it may ship | After design-qa ≥ A | runs `workflows/manufacture.js`; calls both QA skills |
 | `manuf-qa` | skill | Checks the build matches the plan, with real data | After assemble; before merge; before production | writes the `manuf-qa` stamp |
 | `delegate` | skill | Keeps volume work (reading, extracting, reviewing) off the expensive model | Whenever work is self-contained | used by `manufacture` for executors and reviewers; `workflows/lib/delegate-first.js` is the Workflow form |
-| `manufacture.js` | workflow | The manufacture protocol as a script, so no gate can be skipped by a model in a hurry | Invoked by `/manufacture` or by asking for the workflow | reads the stamps; dispatches components by tier |
-| `delegate-first.js` | workflow lib | `smart()` / `read()` helpers that pick the cheapest tier for a Workflow stage | Pasted into Workflow scripts | inlined in `manufacture.js` |
-| `manuf-pack-validate.sh` | hook + CLI | Rejects a pack whose component specs leave the executor any decision | By the planner; by assemble; optionally on every Bash call | gate 0a of assemble |
+| `manufacture.js` | workflow | The manufacture protocol as a script, so the gates run in a fixed order and a red result stops the run | Invoked by `/manufacture` or by asking for the workflow | has an agent check the stamps; dispatches components by tier |
+| `delegate-first.js` | workflow lib | `smart()` / `read()` helpers that pick the cheapest tier for a Workflow stage (worker → Sonnet, reader → Haiku) | Pasted into your own Workflow scripts | `manufacture.js` carries its own tier-keyed variant (cheap / code / adversarial) of the same idea |
+| `manuf-pack-validate.sh` | hook + CLI | Rejects a pack whose component specs leave the executor any decision | By the planner; as step 1 of the workflow; as a Bash hook when assemble is started from the shell | gate 0a of assemble |
 | `manuf-qa-stamp.sh` | CLI | Turns a QA grade into a file a gate can read — chat grades open nothing | End of each QA skill; start/end of assemble | `pack/.qa/*.json` |
 | `design-source-gate.sh` | hook | Blocks writing a large block of UI when no exported design exists | Every Write/Edit to a UI file | the `design/` folder the planner exports |
 
 The Workflow scripts need Claude Code's Workflow tool. Without it, the skills still work: `/manufacture` walks the same steps by hand.
+
+**What the gates can and cannot do.** Hooks are enforced by Claude Code itself: a blocked write does not happen. The workflow fixes the order of the steps and stops on a red result. The QA stamps are different: they are written by the QA pass, so they are a record you can audit (`specs/NNN/.qa/*.json`), not a proof — a model that skipped the QA and wrote the stamp anyway would get through. That is why the grade, the evidence and the date sit in the stamp file, and why a human reads the pack PR.
 
 ## The hooks
 
@@ -169,8 +174,8 @@ Install with `turiya-skills --hooks` (or `./install.sh --hooks`). The installer 
 | `careful-gate.sh` | PreToolUse (Bash) | Opt-in mode. Pauses genuinely irreversible commands (`rm -rf`, force-push, `reset --hard`, `DROP`, `dd`) for a confirmation. Inert until you create the flag. |
 | `freeze-gate.sh` | PreToolUse | Opt-in mode. Hard read-only: every Write/Edit blocked, mutating Bash blocked, read-only Bash allowed. For investigating without touching. |
 | `breadcrumb.sh` | PostToolUse | Appends one line per tool call to a session log. Stop hooks only fire on a graceful exit; a crash loses everything. This survives it. |
-| `design-source-gate.sh` | PreToolUse (Write/Edit) | Blocks a large block of new UI code (markup, JSX, CSS) when no `design/` folder exists up-tree — design first, then implement it. Small edits and logic files pass. Bypass: `design-gate: ignore` in the content. |
-| `manuf-pack-validate.sh` | PreToolUse (Bash) + CLI | Blocks `manufacture assemble` on a pack that is not zero-decision: a component missing one of its 7 fields, an unlocked PRD, a design never exported. Run it by hand too: `manuf-pack-validate.sh specs/NNN-feature`. Bypass: say `manuf-pack-ok`. |
+| `design-source-gate.sh` | PreToolUse (Write/Edit/MultiEdit) | Blocks a large block of new UI code (markup, JSX, CSS) when no `design/` folder exists up-tree — design first, then implement it. Small edits and logic files pass. Bypass: `design-gate: ignore` in the content. |
+| `manuf-pack-validate.sh` | PreToolUse (Bash) + CLI | Blocks a shell-started `manufacture assemble` on a pack that is not zero-decision (the workflow runs the same check as its first step): a component missing one of its 7 fields, an unlocked PRD, a design never exported. Run it by hand too: `manuf-pack-validate.sh specs/NNN-feature`. Bypass: say `manuf-pack-ok`. |
 | `manuf-qa-stamp.sh` | CLI (not wired to an event) | Writes and checks the grade stamps the QA skills produce: `write design-qa <pack> A` · `check manuf-qa <pack> --min=A`. The manufacture workflow reads them. |
 
 The two modes stay invisible until you turn them on:

@@ -40,7 +40,7 @@ for arg in "$@"; do
         --harness)    DO_HOOKS=1; DO_WF=1 ;;
         --hooks-only) DO_HOOKS=1; DO_SKILLS=0 ;;
         --help|-h)
-            sed -n '2,23p' "$0" | sed 's/^# \{0,1\}//'
+            sed -n '2,21p' "$0" | sed 's/^# \{0,1\}//'
             exit 0 ;;
         *)
             echo "error: unknown option '$arg' (try --help)" >&2
@@ -75,6 +75,10 @@ if [ "$DO_SKILLS" -eq 1 ]; then
 
     echo ""
     echo "Skills: $installed installed, $skipped skipped."
+    if [ "$DO_HOOKS" -eq 0 ]; then
+        echo "Note: the build-pipeline skills (manuf-*, manufacture) need the hooks too."
+        echo "      Re-run with --harness to get them."
+    fi
 fi
 
 # ── hooks ─────────────────────────────────────────────────────────────────

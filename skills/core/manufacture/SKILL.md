@@ -8,7 +8,7 @@ description: |
 
 ## What this is for
 
-A green test suite proves the code agrees with the tests. It does not prove the change works: mocked tests cannot see the far-off reader of a shared cache key, the external API that behaves differently than the mock, or the input that reaches the wrong branch. In one restructure of a production resolver, 1,020 passing tests missed four real bugs; four independent reviewers, each told to break it from a different angle, found all four.
+A green test suite proves the code agrees with the tests. It does not prove the change works: mocked tests cannot see the far-off reader of a shared cache key, the external API that behaves differently than the mock, or the input that reaches the wrong branch. On large refactors it is common for a fully green suite to miss several real bugs that a handful of independent reviewers, each told to break the change from a different angle, find within minutes.
 
 This skill is the ritual that catches them: cut the change into parts that each touch one surface, check each part's fit before and after, map what else depends on shared state, then have adversaries try to break the whole — and only then gate the ship on evidence.
 
@@ -19,13 +19,24 @@ This skill is the ritual that catches them: cut the change into parts that each 
 | **assemble** | a pack at `specs/NNN-feature/` from `/manuf-product-design` | a planned feature; the plan already did Diagnose + Machine |
 | **single** / **loop** | a goal + measurable success criteria | a change without a pack; `loop` retries until it ships or hits the iteration cap |
 
-Both modes run as a Claude Code **Workflow** (`workflows/manufacture.js`, installed to `~/.claude/workflows/`). Ask for it by name: *"run the manufacture workflow in assemble mode on specs/003-saved-searches"*, or with `args = { mode:'assemble', pack:'/abs/path/specs/003-saved-searches', cwd:'/abs/repo' }`. For single/loop: `args = { mode:'single', goal:'…', criteria:[{ id:'SC1', check:'npm test', pass_when:'exit 0' }] }`. No Workflow tool in your Claude Code? Run the steps below by hand, in order — the protocol is the point, the script only makes it hard to skip.
+Both modes run as a Claude Code **Workflow** (`workflows/manufacture.js`, installed to `~/.claude/workflows/` by `install.sh --harness` / `turiya-skills --harness`). Ask for it by name: *"run the manufacture workflow in assemble mode on specs/003-saved-searches"*, or with `args = { mode:'assemble', pack:'/abs/path/specs/003-saved-searches', cwd:'/abs/repo' }`. For single/loop:
+
+```js
+{ mode: 'loop',            // 'single' = one pass; 'loop' = repeat until SHIP or maxIters
+  goal: 'Retry failed webhooks with backoff instead of dropping them',
+  criteria: [
+    { id: 'SC1', check: 'npm test -- webhooks', pass_when: 'exit 0' },
+    { id: 'SC2', check: 'grep -c "drop(" src/webhooks.ts', pass_when: 'prints 0' } ],
+  maxIters: 3, cwd: '/abs/repo' }
+```
+
+In `loop`, each pass starts from the previous pass's blockers (adversary findings, unmet criteria, pressure-test fixes), so it converges instead of repeating. No Workflow tool in your Claude Code? Run the steps below by hand, in order — the protocol is the point, the script only makes it hard to skip.
 
 ## Assemble mode — the gates
 
 | Step | Gate | Mechanism | Stops the line if |
 |---|---|---|---|
-| **0a** | Pack is structurally complete | `hooks/manuf-pack-validate.sh` | INVALID |
+| **0a** | Pack is structurally complete | `hooks/manuf-pack-validate.sh`, run as workflow step 1 | INVALID |
 | **0b** | **Plan has no gaps** | `/manuf-design-qa` → stamp `pack/.qa/design-qa.json` | grade < A |
 | 1…N | Build each component | dispatched by its `tier` (cheap→Haiku, code/adversarial→Sonnet, native→in-session) | a fit-check is RED |
 | **N+1** | **Build matches plan** | `/manuf-qa` → stamp `pack/.qa/manuf-qa.json` | grade < A |
@@ -98,9 +109,9 @@ Stamps are written by the QA skills and read by the workflow — `hooks/manuf-qa
 
 ## Examples
 
-- **"Restructure the resolver into one module"** → nine part-specs (one surface each), fit-check before and after each with a no-drift commit, map the shared cache keys, adversarial lenses on each live switch-over, then prove the running version. The adversaries found four bugs 1,020 tests missed.
-- **"Is the nightly re-open job safe to deploy?"** → the `api-real` lens asks "does the vendor API actually re-open a closed conversation when sent this status?" That cannot be decided from code → tell the user, with a one-off live check to run, instead of shipping it as proven.
-- **"Add an auto-close branch for survey replies"** → harden entries: can a complaint phrased like a survey reply reach the close branch? Ordering AND an exact-match guard, then the foreign-input lens before going live.
+- **"Split the pricing code into one module"** → one part-spec per surface, fit-check before and after each with a no-drift commit, map the shared cache keys, adversarial lenses on each switch-over, then prove the running version.
+- **"Is the nightly payment-retry job safe to deploy?"** → the `api-real` lens asks "does the payment provider actually retry a card when sent this status, or does it create a second charge?" That cannot be decided from code → tell the user, with a one-off check against the provider's sandbox, instead of shipping it as proven.
+- **"Add an auto-archive branch for out-of-office replies"** → harden entries: can a real customer email that happens to say "I'm away" reach the archive branch? Ordering AND an exact-match guard, then the foreign-input lens before going live.
 
 ## Troubleshooting
 

@@ -71,11 +71,11 @@ The pattern this kills: architecture designed off a fuzzy goal, UI generated dur
 
    **The flows are the primary artifact. The screen list is derived from them, never the other way round.** A screen list written straight from the PRD narrative covers the moments the narrative mentioned. Flows enumerated per stakeholder cover the work people actually do.
 
-   **Group by stage in the thing's life, not by feature area.** Feature grouping hides gaps because it mirrors how the team is organised; life-stage grouping exposes them because a thing must pass through every stage. A set of eleven groups that has held up:
+   **Group by stage in the thing's life, not by feature area.** Feature grouping hides gaps because it mirrors how the team is organised; life-stage grouping exposes them because a thing must pass through every stage. An example set of groups for a product that manages physical things — adapt the names to your domain:
 
-   > **Acquire · Hold · Service · Software & services · People · Release · Money · Truth · Governance · Push · Observe**
+   > **Acquire · Hold · Service · People · Release · Money · Truth · Governance · Push · Observe**
 
-   `Truth` (reconciliation, corrections, sync health, legacy import), `Push` (digests, reminders, send history) and `Observe` (leadership views, catalogues) are the three groups teams almost always omit, because nobody asked for them — they keep the other eight honest.
+   Groups like `Truth` (reconciliation, corrections, sync health, importing old data), `Push` (digests, reminders, send history) and `Observe` (leadership views, catalogues) are the ones teams almost always omit, because nobody asked for them — they keep the rest honest.
 
    **Enumerate per stakeholder.** Walk each actor and ask what jobs they come to do. The same flow reached by two actors is one flow with two entry points — but a job only one actor has is the one most likely to be missed.
 
@@ -83,7 +83,7 @@ The pattern this kills: architecture designed off a fuzzy goal, UI generated dur
    - **A flow with no screen is a gap.** Something has to carry it.
    - **A screen in no flow is dead weight.** Cut it, or find the flow it serves.
 
-   Expect the count to grow on a second pass: fifty flows became fifty-nine, and the nine were not new scope, they were things nobody had named.
+   Expect the count to grow on a second pass. The new flows are usually not new scope; they are things nobody had named.
 
 3b. **ENTITY MODEL + SCENARIO MATRIX (before any screen is named).** A narrative-derived screen list is recall, not coverage. Derive it instead, from two artifacts in the pack:
 
@@ -97,7 +97,7 @@ The pattern this kills: architecture designed off a fuzzy goal, UI generated dur
 
    Prove it with two tables in the pack: a **coverage table** (per entity: which screen captures its attributes and moves its states — nothing missing) and an **ownership matrix** (entity × screen, marked write or read, nothing written twice).
 
-   Worked example (an IT asset-management product): a narrative-derived list of 15 screens became 35 once entities were exhausted, and three entities surfaced that nothing had — **vendor** (a warranty claim needs a counterparty), **contract** (renewal needs something to attach to), **asset model** (without it, "is this model a lemon" cannot be asked).
+   What this typically finds: a screen list derived from the narrative roughly doubles once entities are exhausted, and entities appear that nothing had — in an inventory product, say, a **vendor** (a warranty claim needs a counterparty), a **contract** (a renewal needs something to attach to), a **product model** (without it, "is this model unreliable" cannot be asked).
 
 3c. **ACTOR CAPABILITY CATALOGUES + END-TO-END TRACES (same gate as 3b).** 3b proves every *entity* is represented. It does not prove any *person* can finish a job. An entity gap ships a fact nothing can record; an actor gap ships a product where every screen is defensible and nobody can complete their work.
 
@@ -245,19 +245,19 @@ The planning session ends here. The pack sits in `specs/NNN/`. Later, a fresh se
 
 **A locked PRD is locked, not finished.** Specifying screens and service contracts *discovers* product decisions that more thinking about the PRD would never have surfaced — they only appear when something has to be drawn or a query has to be written.
 
-**Keep a dated revision table at the top of the PRD:** number, date, the decision, and — the column that matters — **what it changes downstream**. The lock stamp stays; revisions accumulate under it. One real pack ran to twenty-three revisions in two days, each a genuine product decision.
+**Keep a dated revision table at the top of the PRD:** number, date, the decision, and — the column that matters — **what it changes downstream**. The lock stamp stays; revisions accumulate under it. Expect many, and expect each to be a genuine product decision rather than a correction.
 
-What design found that the PRD could not:
+The kinds of thing design finds that the PRD cannot (illustrative):
 
-| Found while | The revision it forced |
+| Found while | The revision it forces |
 |---|---|
-| Modelling entities: nothing held a phone line or a maintenance contract | A new master list had to exist; they were being smuggled into other entities, and both smuggles broke something |
-| Writing the depreciation policy | The previous revision's depreciation rule made *every* repair exceed the replace threshold. Arithmetic, invisible in prose |
-| Specifying a holder field | "No holder" and "held by the organisation" are different facts; collapsing them silenced the orphan-detection queue on exactly the rows it exists for |
+| Modelling entities | Something the product must track has no home, so it gets smuggled into another entity — and the smuggling breaks that entity |
+| Writing a policy as numbers | Two earlier decisions interact arithmetically so that a rule fires on every record. Invisible in prose |
+| Specifying one field | Two states that sound alike ("no owner" vs "owned by the organisation") are different facts; merging them silences the check that exists to catch one of them |
 | Writing a service contract | A queue keyed on the wrong state **returns zero rows forever** and looks drained rather than broken |
 
 Three rules:
-1. **Propagate every revision the same day.** A revision in the table but not swept through the pack is worse than none: the pack now contradicts itself. One sweep found sixteen files still gating on an overturned rule.
+1. **Propagate every revision the same day.** A revision in the table but not swept through the pack is worse than none: the pack now contradicts itself, and the next reader trusts the wrong copy.
 2. **Annotate dated snapshots, never rewrite them.** Keep a quoted source's original text and put the amendment beside it.
 3. **A revision that closes an open question closes it everywhere**, including every "undecided" field that named it.
 
@@ -289,7 +289,7 @@ Never audit while the files are still being edited. And say which screens were *
 
 ## If you generate screens with a browser-driven tool
 
-Lessons from generating dozens of screens through claude.ai/design with the auteur CLI; most apply to any slow, asynchronous generator.
+Lessons from generating screens through claude.ai/design with the auteur CLI; most apply to any slow, asynchronous generator.
 
 - **The tool returns long before the work is done.** Exit code 0, a "done" banner, a file size or a handoff URL are not evidence — all can appear when nothing was generated.
 - **Give it a long timeout** (auteur: `--timeout 1200`; the default is short and real runs take up to 17 minutes). A watchdog that fires kills the generation and leaves no file at all, which looks exactly like a service outage.
@@ -304,7 +304,7 @@ Lessons from generating dozens of screens through claude.ai/design with the aute
 
 > **The design system wins on STYLE. The product pack wins on MEANING.**
 
-Take the system's colour values, type, spacing, components and motion. Take the pack's meaning for what those values signify in this product. Example: a design system used red for below-target, pending and error; the product reserved red for "needs action". Resolution: the system's red, the pack's meaning, and both edges written into every prompt (*waiting is not an issue; old is not an issue*). State the override in the prompt itself — a precedence rule in a separate document does not reach the generator.
+Take the system's colour values, type, spacing, components and motion. Take the pack's meaning for what those values signify in this product. Example: a design system uses red for below-target, pending and error; the product wants red to mean only "needs action". Resolution: the system's red, the pack's meaning, and both edges written into every prompt (*waiting is not an issue; old is not an issue*). State the override in the prompt itself — a precedence rule in a separate document does not reach the generator.
 
 ## Troubleshooting
 
