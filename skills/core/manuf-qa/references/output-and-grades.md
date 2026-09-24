@@ -6,7 +6,7 @@
 # manuf-qa · <pack slug> · env=<local|staging|prod>
 
 ## Grade: A+++ | A | B | C | F
-(A+++ = all layers PASS with evidence; any CRITICAL = max C; MISSING design = max F)
+(A+++ = all layers PASS with evidence; any CRITICAL = max C; MISSING design = max C; pack invalid or never bound to design/ = F)
 
 ## Layer scores
 | Layer | Score | Notes |
@@ -35,7 +35,7 @@
 
 ## HARD: stamp the grade (G-guard)
 
-After grading, **always** write the machine stamp (merge/ship hooks read this):
+After a **full** run, write the machine stamp (the manufacture workflow and your pre-deploy check read it; partial runs do not stamp):
 
 ```bash
 bash ~/.claude/hooks/manuf-qa-stamp.sh write manuf-qa specs/NNN-feature <GRADE> --env=local|staging|prod --notes='pre-merge|pre-deploy'

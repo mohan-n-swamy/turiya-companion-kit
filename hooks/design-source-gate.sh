@@ -134,7 +134,7 @@ if not carries_design(added, ext):
 def repo_root(path):
     d = os.path.dirname(path)
     while d and d != "/":
-        if os.path.isdir(os.path.join(d, ".git")):
+        if os.path.exists(os.path.join(d, ".git")):   # a dir, or a file in a git worktree
             return d
         d = os.path.dirname(d)
     return os.path.dirname(path)

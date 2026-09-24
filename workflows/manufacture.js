@@ -270,6 +270,7 @@ async function runBackHalf({ adversaryGoal, diffScope, pressureContext, criteria
   if (!pressure) return { verdict: 'BLOCK', reason: 'pressure-test returned nothing' }
   log(`Pressure-test: ${pressure.verdict}`)
   if (pressure.verdict === 'BLOCK') return { verdict: 'BLOCK', reason: 'pressure-test fatal', fixes: pressure.fixes_needed }
+  if (pressure.verdict !== 'SHIP') return { verdict: 'NEEDS_WORK', reason: 'pressure-test found fixable gaps', fixes: pressure.fixes_needed || [] }
 
   // Gate — MERGED: success-criteria check + served==built in one agent.
   phase('Gate')
@@ -289,6 +290,9 @@ async function runBackHalf({ adversaryGoal, diffScope, pressureContext, criteria
   if (!gate.criteria_all_met) {
     const unmet = (gate.criteria || []).filter(c => !c.met).map(c => c.id)
     return { verdict: 'NEEDS_WORK', reason: `success criteria unmet: ${unmet.join(', ') || '(none reported)'}`, criteria: gate.criteria }
+  }
+  if (gate.served_equals_built !== true) {
+    return { verdict: 'NEEDS_WORK', reason: 'running system not proven to be the built code (served==built)', unverifiable: gate.unverifiable_flags || [], gate }
   }
   return { verdict: gate.verdict, gate, pressure, adversaryClean: blocking.length === 0, unverifiable, blast: sized.blast }
 }
@@ -451,6 +455,9 @@ async function runAssemble() {
     { label: 'read-manifest', phase: 'Validate pack', schema: MANIFEST_SCHEMA }
   )
   if (!man || !man.components?.length) return { verdict: 'BLOCK', reason: 'manifest has no components' }
+  const ids = man.components.map(c => c.id)
+  const dup = ids.filter((id, i) => ids.indexOf(id) !== i)
+  if (dup.length) return { verdict: 'BLOCK', reason: `manifest has duplicate component ids: ${[...new Set(dup)].join(', ')}` }
   const components = [...man.components].sort((x, y) => x.order - y.order)
   const screens = man.ui_screens || []
   log(`assemble: ${components.length} components · ${screens.length} UI screens · pack=${PACK}`)

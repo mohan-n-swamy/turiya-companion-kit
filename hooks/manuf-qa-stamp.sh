@@ -13,7 +13,7 @@
 #   manuf-qa-stamp.sh write <design-qa|manuf-qa> <pack> <GRADE> [--env=local|staging|prod] [--notes='...']
 #   manuf-qa-stamp.sh check <design-qa|manuf-qa> <pack> --min=<GRADE> [--env=prod]
 #   GRADE: F < C < B < A < A+++
-#   Exit: 0 pass/written · 1 below floor or missing · 2 usage error
+#   Exit: 0 pass/written · 1 below floor or missing · 2 usage or write error
 set -uo pipefail
 
 usage() { sed -n '12,17p' "$0" | sed 's/^# \{0,1\}//' >&2; exit 2; }
@@ -39,13 +39,14 @@ case "$cmd" in
   write)
     [ "$(rank "$grade")" -ge 0 ] || { echo "bad grade '$grade' (F|C|B|A|A+++)" >&2; exit 2; }
     [ -d "$pack" ] || { echo "pack not found: $pack" >&2; exit 2; }
-    mkdir -p "$pack/.qa"
-    python3 - "$stamp" "$kind" "$grade" "$env" "$notes" <<'PY'
+    mkdir -p "$pack/.qa" || { echo "cannot create $pack/.qa" >&2; exit 2; }
+    python3 - "$stamp" "$kind" "$grade" "$env" "$notes" <<'PY' || { echo "FAILED to write $stamp" >&2; exit 2; }
 import json, sys, datetime
 p, kind, grade, env, notes = sys.argv[1:]
-json.dump({"kind": kind, "grade": grade, "env": env, "notes": notes,
-           "at": datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds")},
-          open(p, "w"), indent=2)
+with open(p, "w") as f:
+    json.dump({"kind": kind, "grade": grade, "env": env, "notes": notes,
+               "at": datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds")},
+              f, indent=2)
 PY
     echo "STAMPED $stamp grade=$grade env=$env"
     ;;

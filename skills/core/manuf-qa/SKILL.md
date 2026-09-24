@@ -51,6 +51,8 @@ PACK=specs/NNN-feature/
 
 ### Output + stamp
 
+**Only a `full` run writes the gate stamp.** A `design-fidelity` or `data-fidelity` run is a partial check: emit the report, do not stamp, because a partial pass must never replace the stamp that stands for a full review.
+
 **Read** [`references/output-and-grades.md`](references/output-and-grades.md). Emit the report template, grade, then **always**:
 
 ```bash

@@ -109,16 +109,27 @@ ASSEMBLE_RE = re.compile(
 if not ASSEMBLE_RE.search(stripped):
     allow()
 
-# Bypass: say "manuf-pack-ok" in the conversation
+# Bypass: the USER says "manuf-pack-ok". Only the user's own typed text counts —
+# never tool output, file contents or this hook's own block message.
 transcript = str(data.get("transcript_path") or "")
 if transcript and os.path.isfile(transcript):
     try:
-        with open(transcript, "rb") as f:
-            f.seek(0, 2)
-            size = f.tell()
-            f.seek(max(0, size - 200_000))
-            tail = f.read().decode("utf-8", "ignore").lower()
-        if re.search(r"\bmanuf[-_ ]?pack[-_ ]?ok\b", tail):
+        user_text = []
+        with open(transcript, encoding="utf-8", errors="ignore") as f:
+            for ln in f:
+                try:
+                    ev = json.loads(ln)
+                except ValueError:
+                    continue
+                if ev.get("type") != "user":
+                    continue
+                content = (ev.get("message") or {}).get("content", "")
+                if isinstance(content, str):
+                    user_text.append(content)
+                elif isinstance(content, list):
+                    user_text += [b.get("text", "") for b in content
+                                  if isinstance(b, dict) and b.get("type") == "text"]
+        if re.search(r"\bmanuf[-_ ]?pack[-_ ]?ok\b", "\n".join(user_text).lower()):
             allow()
     except OSError:
         pass
@@ -212,17 +223,21 @@ done
 # holds real verbatim code / a real file:line. That semantic grade is the
 # planner's job + the assemble-time BEFORE fit-check (which reads the real slot).
 FIELDS=(PLACEMENT CODE COMMANDS EXPECTED PRECONDITIONS POSTCONDITIONS STOP)
+check_fields() {
+  local cf=$1 field
+  for field in "${FIELDS[@]}"; do
+    # line-anchored label: optional #/##/### or ** or -, then FIELD, then : or ** or end/heading
+    grep -qiE "^[[:space:]]*(#{1,6}[[:space:]]*|\*\*|-[[:space:]]+)?${field}([[:space:]]*\**[[:space:]]*:|[[:space:]]*\**[[:space:]]*$)" "$cf" \
+      || err "$(basename "$cf"): missing structured Haiku-proof field label '${field}' (must be a heading or 'LABEL:' line, not prose)"
+  done
+}
 compdir="$PACK/components"
 if [ ! -d "$compdir" ] || [ -z "$(ls -A "$compdir" 2>/dev/null | grep -E '\.md$' || true)" ]; then
   err "components/ dir missing or has no *.md — a pack with no components is not buildable"
 else
   for cf in "$compdir"/*.md; do
     [ -e "$cf" ] || continue
-    for field in "${FIELDS[@]}"; do
-      # line-anchored label: optional #/##/### or ** or -, then FIELD, then : or ** or end/heading
-      grep -qiE "^[[:space:]]*(#{1,6}[[:space:]]*|\*\*|-[[:space:]]+)?${field}([[:space:]]*\**[[:space:]]*:|[[:space:]]*\**[[:space:]]*$)" "$cf" \
-        || err "$(basename "$cf"): missing structured Haiku-proof field label '${field}' (must be a heading or 'LABEL:' line, not prose)"
-    done
+    check_fields "$cf"
   done
 fi
 
@@ -249,9 +264,17 @@ if [ -f "$MAN" ]; then
       # 5b. tier is a known executor tier
       jq -e 'all(.components[]; .tier | IN("cheap","code","adversarial","native"))' "$MAN" >/dev/null \
         || err "a component tier is not one of cheap|code|adversarial|native"
-      # 5c. every referenced spec file exists
+      # 5a-ii. component ids are unique (a duplicate id would be skipped as "already built")
+      jq -e '(.components | map(.id)) as $i | ($i | length) == ($i | unique | length)' "$MAN" >/dev/null \
+        || err "manifest has duplicate component ids"
+      # 5c. every referenced spec file exists, and carries the 7 fields itself
+      #     (a manifest may point outside components/, which the loop above never saw)
       while IFS= read -r spec; do
-        [ -f "$PACK/$spec" ] || err "manifest references missing spec file: $spec"
+        if [ -f "$PACK/$spec" ]; then
+          case "$spec" in components/*) ;; *) check_fields "$PACK/$spec" ;; esac
+        else
+          err "manifest references missing spec file: $spec"
+        fi
       done < <(jq -r '.components[].spec' "$MAN")
       # 5d. DAG: every dep resolves to a real component id, and no dep points to a later order (topological)
       jq -e '
@@ -266,14 +289,16 @@ if [ -f "$MAN" ]; then
       # A design that never landed in the pack is not a design — require design/ files on disk.
       jq -e '(.ui_screens // []) | all(has("id") and has("name") and (.mock // "" | length > 0))' "$MAN" >/dev/null \
         || err "a ui_screen is missing id, name or mock"
-      # 5e-i-strict: mock paths must live under design/
+      # 5e-i-strict: mock and data_contract paths must resolve inside design/
+      #   (normalised, so design/../README.md does not pass)
       while IFS= read -r mf; do
         [ -z "$mf" ] && continue
-        case "$mf" in
+        norm=$(python3 -c 'import os,sys; print(os.path.normpath(sys.argv[1]))' "$mf")
+        case "$norm" in
           design/*) ;;
-          *) err "ui_screen.mock must be under design/ (got: $mf) — export the design into the pack" ;;
+          *) err "ui_screen mock/data_contract must be inside design/ (got: $mf) — export the design into the pack" ;;
         esac
-      done < <(jq -r '(.ui_screens // [])[] | (.mock // empty)' "$MAN")
+      done < <(jq -r '(.ui_screens // [])[] | (.mock // empty), (.data_contract // empty)' "$MAN")
       # 5e-ii. every referenced mock / data_contract file exists
       while IFS= read -r mf; do
         [ -z "$mf" ] || [ -f "$PACK/$mf" ] || err "ui_screen references missing file: $mf — the design was never exported into the pack"
@@ -306,17 +331,24 @@ TOK = re.compile(r'\b(dummyData|sampleData|fakeUser|lorem ipsum|TODO: wire later
 SPAN = re.compile(r'`[^`]*`')
 OK = re.compile(r'NEEDS_LIVE_WIRE|STOP|forbid|ban\b|must not|may not|never|no production|'
                 r'not a|rather than|instead of|halt|refus|reject|red check|would require', re.I)
+LABEL = re.compile(r'^\s*(?:#{1,6}\s*|\*\*|-\s+)?(PLACEMENT|CODE|COMMANDS|EXPECTED|PRECONDITIONS|POSTCONDITIONS|STOP)\b', re.I)
 hits = []
 for dp, dn, fs in os.walk(sys.argv[1]):
     for fn in fs:
         if not fn.endswith('.md'):
             continue
         fenced = False
+        field = ''
         for i, line in enumerate(open(os.path.join(dp, fn), encoding='utf-8', errors='replace'), 1):
             if line.lstrip().startswith('```'):
                 fenced = not fenced
                 continue
-            if fenced or OK.search(line):
+            m = None if fenced else LABEL.match(line)
+            if m:
+                field = m.group(1).upper()
+            # Fenced blocks are commands or forbidden-word lists — EXCEPT under
+            # CODE, which is the verbatim code the executor will apply.
+            if (fenced and field != 'CODE') or OK.search(line):
                 continue
             if TOK.search(SPAN.sub('', line)):
                 hits.append(f"{os.path.join(dp, fn)}:{i}")

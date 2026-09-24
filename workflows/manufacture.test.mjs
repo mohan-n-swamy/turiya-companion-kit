@@ -87,6 +87,23 @@ const A = { mode: 'assemble', pack: PACK, cwd: '/repo' }
   const { result } = await run(A, happy({ 'adversary:lens-0': { blocking: ['auth.ts:12 bypass'], verdict: 'BLOCKING ISSUES FOUND' } }))
   ok('blocking adversary finding → BLOCK', result.verdict === 'BLOCK' && result.blocking?.length === 1)
 }
+// 7b. pressure-test NEEDS_WORK stops the ship
+{
+  const { result } = await run(A, happy({ pressure: { verdict: 'NEEDS_WORK', fixes_needed: ['fix the race'] } }))
+  ok('pressure NEEDS_WORK → not SHIP', result.verdict === 'NEEDS_WORK' && result.fixes?.[0] === 'fix the race')
+}
+// 7c. served != built stops the ship
+{
+  const { result } = await run(A, happy({ gate: { verdict: 'SHIP', criteria_all_met: true, served_equals_built: false } }))
+  ok('served_equals_built false → not SHIP', result.verdict === 'NEEDS_WORK')
+}
+// 7d. duplicate component ids block before any build
+{
+  const dupMan = { components: [ { id: 'C1', spec: 'components/C1.md', tier: 'code', order: 1 }, { id: 'C1', spec: 'components/C1b.md', tier: 'code', order: 2 } ], ui_screens: [] }
+  const { result, calls } = await run(A, happy({ 'read-manifest': dupMan }))
+  ok('duplicate ids → BLOCK', result.verdict === 'BLOCK' && /duplicate/.test(result.reason))
+  ok('duplicate ids → nothing built', !calls.some(c => (c.opts.label || '').startsWith('build:')))
+}
 // 8. loop mode feeds pass 1's blocker into pass 2's Diagnose, then ships
 {
   let pass1 = true
