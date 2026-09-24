@@ -23,7 +23,7 @@ Discipline: never write `specs/<feature>/tasks.md` until the sibling `spec.md` h
 ## Steps
 
 1. **Resolve the feature name** from the user's args → a 2-4-word kebab slug (e.g. `invoice-email-parser`). If none given, ask one short question.
-2. **Find the repo root** of the current project (the `claude projects/**` dir you're working in, or cwd). Specs live at `<repo>/specs/`.
+2. **Find the repo root** of the current project (the git root of the project you're working in, or cwd). Specs live at `<repo>/specs/`.
 3. **Compute the next number**: list `specs/`, take `max(NNN)+1` zero-padded to 3 (`001`, `002`, …). New dir = `specs/<NNN>-<slug>/`.
 4. **Write `spec.md`** from the template below. Leave the `[NEEDS CLARIFICATION: …]` placeholders in End-State + Success Criteria — fill them with real content before writing tasks.md (do NOT pre-fill with filler).
 5. **Write `plan.md`** from the plan stub below (HOW + stack — filled after the spec is real).

@@ -174,7 +174,7 @@ Each component carries a `tier` in `manifest.json`; `/manufacture assemble` rout
 |---|---|---|
 | `cheap` | mechanical edit, boilerplate, rename, config | Haiku subagent |
 | `code` | logic, algorithm, standard implementation | Sonnet subagent |
-| `adversarial` | security-sensitive, tricky control flow | Sonnet subagent (or another model family through a router) |
+| `adversarial` | security-sensitive, tricky control flow | Sonnet subagent (another model family if you set `ROUTER_TOOL` in `workflows/manufacture.js`) |
 | `native` | needs this repo's context across many tool steps | Sonnet in-session |
 
 A zero-decision spec means even the `cheap` tier cannot go wrong — the tier is a cost lever, not a safety net.

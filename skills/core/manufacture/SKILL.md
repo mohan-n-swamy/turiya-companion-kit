@@ -41,8 +41,8 @@ In `loop`, each pass starts from the previous pass's blockers (adversary finding
 | 1…N | Build each component | dispatched by its `tier` (cheap→Haiku, code/adversarial→Sonnet, native→in-session) | a fit-check is RED |
 | **N+1** | **Build matches plan** | `/manuf-qa` → stamp `pack/.qa/manuf-qa.json` | grade < A |
 | **N+2** | Adversaries + pressure test | refuter lenses on the real diff | a blocking finding |
-| **N+3** | **Production** | `/manuf-qa --env=prod` → stamp A+++ `env=prod` | not A+++ with a live probe |
-| **N+4** | Running = built | read the version from the running system | mismatch |
+| **N+3** | **Production** — you run this before deploying; the workflow stops at merge | `/manuf-qa --env=prod`, then `manuf-qa-stamp.sh check manuf-qa <pack> --min=A+++ --env=prod` | not A+++ with a live probe |
+| **N+4** | Running = built — you run this after deploying | read the version from the running system | mismatch |
 
 Rules for assemble:
 1. **Implement the exported designs only** — read `specs/NNN/design/*` and translate them faithfully. Never re-design, never invent parallel CSS, never skip 0b. If a design file is incomplete, re-export the *same* locked design.

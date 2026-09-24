@@ -90,6 +90,9 @@ expect "design: new UI with no design/ blocked" 2 design-source-gate.sh "$(write
 expect "design: bypass comment passes"          0 design-source-gate.sh "$(write_in "$R/src/Page.tsx" "// design-gate: ignore
 $UI")"
 expect "design: logic file passes"              0 design-source-gate.sh "$(write_in "$R/src/util.ts" "$UI")"
+mkdir -p "$R/specs/001-demo/design" && echo mock > "$R/specs/001-demo/design/page.html"
+expect "design: pack design in specs/*/design passes" 0 design-source-gate.sh "$(write_in "$R/src/Page.tsx" "$UI")"
+rm -rf "$R/specs"
 mkdir -p "$R/design" && echo mock > "$R/design/page.html"
 expect "design: with design/ passes"            0 design-source-gate.sh "$(write_in "$R/src/Page.tsx" "$UI")"
 

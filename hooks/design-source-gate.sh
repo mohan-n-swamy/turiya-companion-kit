@@ -24,7 +24,8 @@
 #
 # HOW IT PASSES LEGITIMATELY
 #   A non-empty `design/` directory up-tree from the target file, inside the
-#   repo — the exported design the code implements. A design that only lives in
+#   repo, or in a spec pack at <repo>/specs/*/design/ — the exported design the
+#   code implements. A design that only lives in
 #   a browser tab is not a design the code can be checked against.
 #
 # ESCAPE HATCH
@@ -141,15 +142,23 @@ def repo_root(path):
 root = repo_root(target)
 
 def has_design_pack(path, root):
-    """A non-empty design/ dir anywhere between the file and the repo root."""
+    """A non-empty design/ dir between the file and the repo root, or in any
+    spec pack at <repo>/specs/*/design/ (where manuf-product-design exports it)."""
     d = os.path.dirname(path)
     while True:
         cand = os.path.join(d, "design")
         if os.path.isdir(cand) and os.listdir(cand):
             return cand
         if d == root or d == "/" or not d:
-            return None
+            break
         d = os.path.dirname(d)
+    specs = os.path.join(root, "specs")
+    if os.path.isdir(specs):
+        for name in sorted(os.listdir(specs)):
+            cand = os.path.join(specs, name, "design")
+            if os.path.isdir(cand) and os.listdir(cand):
+                return cand
+    return None
 
 if has_design_pack(target, root):
     sys.exit(0)
@@ -168,7 +177,7 @@ diagnostic:
   subject: {{file: {rel}, repo: {root}}}
   evidence:
     added: ~{added_lines} lines carrying markup/CSS
-    design_pack: none up-tree from file to repo root
+    design_pack: none up-tree from file to repo root, none in specs/*/design/
 
 Rule: UI is implemented FROM a design, never invented in the editor.
 Writing this file directly skips the design step and produces template UI.

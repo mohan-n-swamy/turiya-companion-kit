@@ -37,7 +37,8 @@ export const meta = {
 //   loop      same args as single, plus maxIters (default 5). Repeats the pass,
 //             feeding the previous pass's blockers into the next Diagnose, until
 //             SHIP or the cap.
-//   Optional: lenses: ['name — the question the reviewer must answer', …]
+//   Optional: base: 'main' (the branch the change is diffed against);
+//             lenses: ['name — the question the reviewer must answer', …]
 //             overrides the adversary lenses; minBudget stops loop mode early.
 //
 // OUTPUT  { verdict: 'SHIP' | 'NEEDS_WORK' | 'BLOCK', reason, … } — a BLOCK
@@ -66,6 +67,7 @@ const PACK       = String(a.pack || '').trim()          // specs/NNN-feature dir
 const CWD        = String(a.cwd || '').trim()
 const MODE       = (a.mode === 'assemble') ? 'assemble'
                  : (a.mode === 'single') ? 'single' : 'loop'
+const BASE       = String(a.base || 'main').trim()   // branch the change is diffed against
 const MAX_ITERS  = Number(a.maxIters) > 0 ? Number(a.maxIters) : 5
 const MIN_BUDGET = Number(a.minBudget) > 0 ? Number(a.minBudget) : 60_000
 // Full lens set (5). Sized down by blast-radius at run time (sizeLenses) unless
@@ -91,7 +93,7 @@ const LENS_OVERRIDE = Array.isArray(a.lenses) && a.lenses.length ? a.lenses : nu
 async function sizeLenses(diffScope) {
   if (LENS_OVERRIDE) return { lenses: LENS_OVERRIDE, blast: 'override' }
   const probe = await agent(
-    `Run: \`git diff main...HEAD | grep -ciE 'redis|\\\\.set\\\\(|\\\\.get\\\\(|UPDATE |INSERT |DELETE |process\\\\.env|global|shared|cache|await fetch|axios|requests\\\\.'\` in ${diffScope}. ` +
+    `Run: \`git diff ${BASE}...HEAD | grep -ciE 'redis|\\\\.set\\\\(|\\\\.get\\\\(|UPDATE |INSERT |DELETE |process\\\\.env|global|shared|cache|await fetch|axios|requests\\\\.'\` in ${diffScope}. ` +
     `Return ONLY the integer count (0 if no match / no diff).`,
     { label: 'blast-probe', phase: 'Adversary', schema: {
       type: 'object', required: ['shared_state_hits'],
@@ -233,7 +235,7 @@ async function runBackHalf({ adversaryGoal, diffScope, pressureContext, criteria
   const advResults = await parallel(sized.lenses.map((lens, i) => () =>
     smart(
       `## Adversarial verifier — lens: ${lens}\n\n${adversaryGoal}\n\n` +
-      `Read the ACTUAL changed code (git diff main...HEAD or the relevant files). ` +
+      `Read the ACTUAL changed code (git diff ${BASE}...HEAD or the relevant files). ` +
       `Try HARD to find a CONCRETE way this change breaks under this lens.\n` +
       `Also answer, from this lens: what is the SINGLE strongest reason this change does NOT deliver its objective? ` +
       `(folds the old pressure-test Q1/Q5 — "how it fails" + "best reason it fails" — into the adversarial read).\n\n` +

@@ -16,7 +16,7 @@
 #   Exit: 0 pass/written · 1 below floor or missing · 2 usage error
 set -uo pipefail
 
-usage() { sed -n '14,18p' "$0" | sed 's/^# \{0,1\}//' >&2; exit 2; }
+usage() { sed -n '12,17p' "$0" | sed 's/^# \{0,1\}//' >&2; exit 2; }
 rank() { case "$1" in F) echo 0;; C) echo 1;; B) echo 2;; A) echo 3;; 'A+++') echo 4;; *) echo -1;; esac; }
 
 [ $# -ge 3 ] || usage

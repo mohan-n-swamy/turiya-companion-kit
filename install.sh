@@ -119,7 +119,7 @@ if [ "$DO_HOOKS" -eq 1 ]; then
       "hooks": [ { "type": "command", "command": "bash ~/.claude/hooks/careful-gate.sh" } ] },
     { "matcher": "Write|Edit|MultiEdit|NotebookEdit|Bash",
       "hooks": [ { "type": "command", "command": "bash ~/.claude/hooks/freeze-gate.sh" } ] },
-    { "matcher": "Write|Edit",
+    { "matcher": "Write|Edit|MultiEdit",
       "hooks": [ { "type": "command", "command": "bash ~/.claude/hooks/dep-gate.sh" },
                  { "type": "command", "command": "bash ~/.claude/hooks/config-protection.sh" },
                  { "type": "command", "command": "bash ~/.claude/hooks/design-source-gate.sh" } ] },
