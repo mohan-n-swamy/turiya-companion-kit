@@ -22,7 +22,7 @@ The skills are advice the model chooses to follow. The hooks are not: they are s
 
 - [Claude Code](https://claude.com/claude-code) installed and working (`claude` on your PATH)
 - A terminal. No plugins, no MCP servers, no note-taking app required. The daily-ritual skills assume only "a folder of markdown notes, one per day."
-- For the hooks: `python3` (most hooks are a few lines of shell around Python). For the build pipeline also `jq` (the pack validator refuses to pass a pack it cannot parse) and `node` if you want to run the workflow tests. Homebrew installs none of these for you; `brew install jq` if missing.
+- For the hooks: `python3` (most hooks are a few lines of shell around Python). For the build pipeline also `jq` (the pack validator refuses to pass a pack it cannot parse) and `node` if you want to run the workflow tests. The Homebrew formula installs `jq` for you; from source, `brew install jq` (or your package manager) if missing.
 
 ## Install
 
